@@ -1,6 +1,6 @@
 # RFC 0016: Curiosity, a drive fed by the measured surprise, and the self-start it gates
 
-Status: implemented (library, strand line, `live control STRAND stir?`), off by default; engine 0.14.0-dev on a draft PR ·
+Status: implemented (library, strand line, `live control STRAND stir?`), off by default; since 0.14.0 ·
 Changes: docs/persona.md (§2.20, a new optional top-level block, in the digest), one engine-gated field on event lines, one
 key in the expectation's checkpoint memory · Depends on: RFC 0009 (the deviation's z and the memory fold), RFC 0004 (the
 bound), RFC 0013 (the Mirror's account)

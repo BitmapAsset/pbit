@@ -19,7 +19,7 @@ path = "src/main.rs"
 turn_trace = ["probbit-persona/turn_trace"]
 
 [dependencies]
-probbit-core = { path = "../probbit-core", version = "0.14.0-dev" }
-probbit-decide = { path = "../probbit-decide", version = "0.14.0-dev" }
-probbit-ir = { path = "../probbit-ir", version = "0.14.0-dev" }
-probbit-persona = { path = "../probbit-persona", version = "0.14.0-dev" }
+probbit-core = { path = "../probbit-core", version = "0.14.0" }
+probbit-decide = { path = "../probbit-decide", version = "0.14.0" }
+probbit-ir = { path = "../probbit-ir", version = "0.14.0" }
+probbit-persona = { path = "../probbit-persona", version = "0.14.0" }

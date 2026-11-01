@@ -17,5 +17,5 @@ std = ["probbit-core/std"]
 nostd = ["dep:probbit-nostd", "probbit-core/nostd"]
 
 [dependencies]
-probbit-nostd = { path = "../probbit-nostd", version = "0.14.0-dev", optional = true }
-probbit-core = { path = "../probbit-core", default-features = false, version = "0.14.0-dev" }
+probbit-nostd = { path = "../probbit-nostd", version = "0.14.0", optional = true }
+probbit-core = { path = "../probbit-core", default-features = false, version = "0.14.0" }

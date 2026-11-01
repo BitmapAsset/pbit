@@ -3,7 +3,7 @@
 # installs it with -DownloadBase, then the `irm | iex` form (environment variables), then the tampered copy (must fail).
 #   pwsh -File scripts/bench/test_install_ps1.ps1 -Srv <dir> [-Tag v0.2.0] [-AddToPath]
 #   powershell -ExecutionPolicy Bypass -File scripts/bench/test_install_ps1.ps1 -Srv <dir>
-param([Parameter(Mandatory = $true)][string]$Srv, [string]$Tag = 'v0.13.0', [switch]$AddToPath)
+param([Parameter(Mandatory = $true)][string]$Srv, [string]$Tag = 'v0.14.0', [switch]$AddToPath)
 $ErrorActionPreference = 'Stop'
 "PowerShell $($PSVersionTable.PSVersion) ($($PSVersionTable.PSEdition))"
 $oldPath = $env:Path

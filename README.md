@@ -62,7 +62,7 @@ curl -fsSL https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.sh
 # 2. Put that directory on PATH for this shell. No output.
 export PATH="$HOME/.local/bin:$PATH"
 
-# 3. Expect "probbit 0.13.0" (or later). Exit 0.
+# 3. Expect "probbit 0.14.0" (or later). Exit 0.
 probbit --version
 
 # 4. Fetch an example persona (a tutor called Pip). No output; tutor.yaml appears.
@@ -97,12 +97,12 @@ stance `line` into your model's prompt each turn; the model writes, the persona 
 | CLI | the install line above, `npm i -g probbit`, or `install.ps1` | `probbit demo --tasks 12 \| probbit decide --summary` → `"verdict":"exact"`, `"violations":0` |
 | MCP server (Claude Code, Codex, Cursor, mcporter, any MCP client) | `claude mcp add probbit -- probbit mcp` ([docs/agents.md](docs/agents.md)) | step 8 above: 10 tools, `probbit_decide` … `probbit_live_verify` |
 | OpenClaw plugin | `openclaw plugins install npm:probbit-stance --accept-capabilities` | `openclaw plugins inspect probbit-stance --runtime --json` lists both hooks ([plugins/openclaw](plugins/openclaw/README.md)) |
-| npm | `npm i -g probbit` (Node 18+; downloads the prebuilt binary, SHA-256 checked) | `probbit --version` → `probbit 0.13.0` |
+| npm | `npm i -g probbit` (Node 18+; downloads the prebuilt binary, SHA-256 checked) | `probbit --version` → `probbit 0.14.0` |
 | Python | `curl -fsSLO https://raw.githubusercontent.com/BitmapAsset/probbit/main/python/probbit.py`: a stdlib-only wrapper around the CLI (decide, run, evaluate, persona, live; typed errors); not on PyPI | `python3 -c 'import probbit; s=probbit.persona_init("tutor.yaml", seed=2); print(probbit.persona_turn("tutor.yaml", s, {"sentiment":"negative"})["stance"]["line"])'` → `Stance: go easy on the jokes; …` |
 | Agent SDK adapters | Claude Code hooks, OpenAI Agents SDK, LangChain, Vercel AI SDK ([docs/adapters.md](docs/adapters.md)) | in a clone: `python3 python/test_host.py` (Python hosts) or `node --test examples/node/stance-host.test.mjs` |
 | Browser (wasm) | in a clone, with Rust and `rustup target add wasm32-unknown-unknown`: `playground/build.sh` | `ls -l playground/probbit.wasm`, then open `playground/index.html` |
 | Rust library | not on crates.io yet: `cargo add --git https://github.com/BitmapAsset/probbit probbit-decide` | `cargo test -p probbit-decide` in a clone ([Library API](#library-api-rust)) |
-| `no_std` / microcontrollers | in review for 0.14, not on `main` and not in a release | — |
+| `no_std` / microcontrollers | the library crate `probbit-persona` with the feature `nostd` (`no_std` + `alloc`), from git like the Rust library ([docs/embedding.md](docs/embedding.md)) | in a clone, with the esp toolchain: `cargo +esp check -p probbit-persona --no-default-features --features nostd --target xtensa-esp32s3-none-elf -Zbuild-std=core,alloc` |
 
 ## FAQ
 
@@ -130,6 +130,34 @@ stance `line` into your model's prompt each turn; the model writes, the persona 
 - **Is probbit the same as probit?** No. probbit (two b's, short for *probabilistic bit*) is this project. It is unrelated to
   the probit function or probit regression in statistics, to Power BI template files (`.pbit`), to the Python p-bit circuit
   simulators (p-bit, p-kit), and to other products or companies that share the name.
+
+## What's new in 0.14.0
+
+- **The persona layer as a library crate, for std and `no_std` hosts.** `probbit-persona` holds the document layer and the
+  strand writer (`Live`, the line writers, `Replay`, `verify*`, no file I/O), with the features `std` (default) and `nostd`
+  (`no_std` + `alloc`, checked on `xtensa-esp32s3-none-elf`); the CLI uses it unchanged and every CLI output of the move is
+  byte for byte as 0.13.0. Setup, the turn and resume return boxed values, so one event's stack high-water on the host proxy
+  fell from 31,824 to 13,808 bytes (setup: 39,056 to 12,112); a strand resumes from its last checkpoint or from a state
+  record behind it, and seals into segments ([docs/embedding.md](docs/embedding.md) "Stack budget", "Sizing a strand on
+  flash", "Resume on a body").
+- **The expectation cache.** The expectation keeps an exact cache and solves the event's own program once; every stance,
+  strand line and digest is the same with the cache on or off (a life of one repeated event, host proxy: `expect` 52 % → 37 %
+  of the turn, 95 % of its programs from the cache; [docs/embedding.md](docs/embedding.md) "The expectation's cache" and
+  "The expectation's members").
+- **The self layer, off by default** ([RFC 0013](docs/rfcs/0013-self-report.md), [0014](docs/rfcs/0014-integrity.md),
+  [0015](docs/rfcs/0015-consolidation.md), [0016](docs/rfcs/0016-curiosity.md)): `probbit reflect` and reflection lines (a
+  canonical account of a window of events from the lines alone, no solve), integrity (per trait the drift from the declared
+  self against RFC 0004's allowance; the monitor's dial and the Mirror tab), the rest pass (`live control STRAND rest`, one
+  `consolidation` line) and curiosity (a drive fed by the measured surprise, with an optional stir). Each part is opt-in and a
+  deterministic function of the logged lines that `probbit live verify` recomputes. A declared, replayable self; it does not
+  feel. A persona that declares none of its keys gets every document byte for byte as before (P0: 653 outputs, 0 differ).
+- **An optional tier, off by default: a simulated amplitude register, exact, on a CPU** (`engine: {tier: amplitude}` the
+  opt-in; [RFC 0011](docs/rfc/0011-amplitude-register.md), [the demo](examples/persona/demo/)): at one event of the demo
+  tutor the thermal odds of the top two humour levels sit 0.007412 apart and the register's long sweep separates them by
+  0.494808; a register strand recorded on a 0.14.0-dev build before the tier's last round may not verify on 0.14.0.
+- Engine gate: strands with the new line kinds or keys read as unsupported (exit 5) on 0.13.x. The release has 15 assets:
+  six archives, `probbit-Monitor-v0.14.0-macos.zip`, a `.sha256` for each, and `probbit.1`.
+  [Release notes](https://github.com/BitmapAsset/probbit/releases/tag/v0.14.0) · [CHANGELOG](CHANGELOG.md)
 
 ## What's new in 0.12.0 to 0.13.0
 
@@ -259,7 +287,7 @@ modes"). The tables are in [BENCHMARKS.md](BENCHMARKS.md).
 
 ## Install
 
-One line, no sudo, the archive's SHA-256 checked before anything is installed. The current release is v0.13.0.
+One line, no sudo, the archive's SHA-256 checked before anything is installed. The current release is v0.14.0.
 
 | how | command |
 |---|---|
@@ -702,7 +730,7 @@ numbers), and uploads the JSON report as an artifact:
 
 ```yaml
 - uses: actions/checkout@v7
-- uses: BitmapAsset/probbit@v0.13.0    # the action needs probbit 0.9.0 or later
+- uses: BitmapAsset/probbit@v0.14.0    # the action needs probbit 0.9.0 or later
   with:
     persona: agent/policy.yaml
     props: agent/rules.json
@@ -718,7 +746,7 @@ numbers), and uploads the JSON report as an artifact:
 | `strands` | | strands to replay, one path or glob per line; a glob that matches nothing fails the check |
 | `seeds` | `0-99` | the individuals |
 | `depth` | probbit's (8) | events per fuzzed script |
-| `version` | `latest` | the release `install.sh` installs (`v0.13.0`, ...) |
+| `version` | `latest` | the release `install.sh` installs (`v0.14.0`, ...) |
 | `binary` | | a probbit binary to use instead (one built earlier in the job); overrides `version` |
 | `allow-unproven` | `false` | `true`: exit 3 is a warning and the job passes |
 | `json-artifact` | `true` | upload `probbit-check.json` (`actions/upload-artifact@v4`, the only action it uses) |

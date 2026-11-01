@@ -230,17 +230,18 @@ engine:
   twin: true            # also solve the habit-free twin in the same program, to report which habits changed the stance
   values: positional    # positional (level i -> l<i>: small pair tables, fast) | semantic (level names: readable programs)
   on_conflict: fallback # fallback | yield: when habits contradict, the lower-priority one yields (section 5.5)
-  # tier: amplitude     # research (RFC 0011, draft): an exact simulated qubit register on a CPU; absent = the default tiers
+  # tier: amplitude     # optional tier, off by default (RFC 0011): an exact simulated qubit register on a CPU; absent = the default tiers
   # q_max: 12           # the most encoded qubits (ceil(log2 d) per variable) in one component the amplitude tier takes (1-16)
-  # amplify: false      # research (RFC 0011, round 4): with the tier, exact amplitude amplification in place of the projection
-  # schedule: tf-linear-16x4 # research (RFC 0011, round 5): the register's evolution: tf-linear-16x4 | tf-linear-64x16 | qaoa-p2
+  # amplify: false      # with the tier (RFC 0011, round 4): exact amplitude amplification in place of the projection
+  # schedule: tf-linear-16x4 # with the tier (RFC 0011, round 5): the register's evolution: tf-linear-16x4 | tf-linear-64x16 | qaoa-p2
 line:
   max_tokens: 40        # estimated tokens (max of chars / 4 and 4/3 per word)
   order: [verbosity, caution, directness, warmth, humour, initiative, formality, curiosity]
   prefix: "Stance: "
 ```
 
-**`engine.tier: amplitude` (research, off by default; docs/rfc/0011-amplitude-register.md).** The turn's program is solved by
+**`engine.tier: amplitude` (an optional tier, off by default; `engine: {tier: amplitude}` the opt-in;
+docs/rfc/0011-amplitude-register.md).** The turn's program is solved by
 an exact simulated qubit register on a CPU: a variable with d allowed values takes ⌈log2 d⌉ qubits (a three-level trait two,
 its fourth code unused and kept at amplitude 0), one register per connected component of the program (2^q complex
 amplitudes each), a fixed transverse-field sweep with a general diagonal phase layer, the habits as a projection onto the
@@ -250,16 +251,19 @@ plans that obey them, when the largest component has at most `q_max` encoded qub
 the layer list, the schedule and the final amplitudes at 6 decimals) and
 `feasible_mass`; `live verify` recomputes them from the strand. Without the key nothing changes, byte for byte. An engine
 without the tier reports a strand that uses it as `unsupported by this engine: engine.tier` (exit 5). `engine.amplify: true`
-(research, round 4; needs the tier) replaces the projection by exact amplitude amplification, simulated on a CPU: the
+(an optional tier, off by default; `engine: {tier: amplitude}` the opt-in, then this key; RFC 0011, round 4) replaces the projection by exact amplitude amplification, simulated on a CPU: the
 rules are the oracle, the register is rotated onto the plans that obey them, the stance is the projection's (the same plan and odds, measured equal to
 1.1e-12) and `engine.amplify` logs the iterations, the final phases and the mass before and after (`feasible_mass` 1). `engine.schedule`
-(research, round 5; needs the tier; absent = `tf-linear-16x4`) names the evolution of the register, simulated exactly on a CPU: `tf-linear-64x16` (four times
+(an optional tier, off by default; `engine: {tier: amplitude}` the opt-in, then this key; absent = `tf-linear-16x4`; RFC 0011,
+round 5) names the evolution of the register, simulated exactly on a CPU: `tf-linear-64x16` (four times
 the layers) separates the top two levels where the thermal tier is a near tie (median gap 0.152 vs 0.049 on the recorded corpus) and
 agrees more elsewhere; `qaoa-p2` is two fixed QAOA layers (RFC 0011, "Schedules and the indifferent set"). Since round 7 the
-register computes its math functions with one library (`libm`) on the std and the no_std build: 100 fresh lives per schedule
-recorded on the std build re-verify on the no_std build 100 of 100 and re-write byte for byte, on each of the three schedules
-(x86_64; arm64 not measured). The math change is in the last bits: the tutor's and the demo's default-schedule strands are
-byte-identical to before, a larger persona's can move. The register is a
+register computes its math functions with one library (`libm`) on the std and the no_std build. Measured replay (x86_64,
+std and no_std builds): 100/100 lives on each of the three schedules, recorded on the std build, re-verify on the no_std build
+and re-write byte for byte; the arm64 replay of the tier is not measured. The math change is in the last bits: the tutor's
+and the demo's default-schedule strands are byte-identical to before, a larger persona's can move. Measured cost: 1.50× per
+event for the long sweep against the default sweep on a recorded day (a 52-qubit persona, x86_64); the no_std build's stack
+high-water ≤ 2,944 B on every schedule. The register is a
 simulation: no quantum hardware, no speedup claim; its stances agree with the default tier in 96 % of trait decisions on the
 recorded corpus (RFC 0011, round 3). With the key, `persona bound` probes through the tier: compute the certificate again with
 it, since one computed without the key does not cover the tier.
@@ -1541,7 +1545,7 @@ credits every learned trait with the level it took, so a reward aimed at one tra
 demo below, praise for short answers also raised the light joke the tutor was making): learn the traits the feedback judges.
 
 **The strand.** `--strand FILE` logs the life. Line 1 is the header, compact JSON:
-`{"probbit_strand":1,"engine":"probbit 0.13.0","persona":{"name","version","digest"},"seed":N,"state":{...},"document":{...}}`,
+`{"probbit_strand":1,"engine":"probbit 0.14.0","persona":{"name","version","digest"},"seed":N,"state":{...},"document":{...}}`,
 with the initial state as canonical JSON (one individual has one header, whether it comes from `init` or from a state file) and
 the persona document in its own key order (the compiled program, and `engine.program` with it, follows the document's key order).
 Then one line per event, canonical JSON: `{"inputs":{...,"elapsed_hours":h},"n":k,"prev":"sha256:...","stance":"sha256:...",

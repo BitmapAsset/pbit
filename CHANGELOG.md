@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
+## 0.14.0 - 2026-10-31
+
 0.14.0 makes the persona layer a library crate, `probbit-persona` (std, and `no_std` + `alloc` checked on
 `xtensa-esp32s3-none-elf`), and fits it to a small host: heap-returning setup, turn and resume (one event's stack
 high-water on the host proxy 31,824 → 13,808 bytes), resume from a checkpoint or from a record behind the strand, and sealed
@@ -195,7 +197,15 @@ checkpoint's `expect`, `expectation.rest`, the `identity` self keys) read as uns
   npm): `docs/monitor-app.md` says to remove the quarantine mark before the first open and how to recover after a refused
   one (move the app, or Open Anyway), and that the bundled probbit serves several strands with a switcher; the plugin
   README names the second warning an older probbit gives; REPRODUCE.md no longer says only 0.12.0 replays the strand.
-### Research
+
+### The amplitude register, an optional tier (off by default)
+
+RFC 0011's simulated amplitude register, exact, on a CPU, is an optional solver tier, off by default (`engine: {tier:
+amplitude}` the opt-in); without the key every stance and strand is byte for byte as without the tier. Measured on round 7's
+tree (x86_64, the std and the no_std build): 100/100 lives replay on each of the three schedules (the arm64 replay of the tier
+is not measured); the long sweep costs 1.50× per event against the default sweep on a recorded day; the no_std stack
+high-water is at most 2,944 B. A register strand recorded on a 0.14.0-dev build before round 7 may not verify after it (the
+default schedule's digests moved on one 52-qubit lab persona; no shipped fixture moved). The rounds, newest first:
 
 - **RFC 0011, round 7: one math path for the register** (research, `engine.tier: amplitude` stays opt-in; docs/rfc/0011-amplitude-register.md,
   "One math path"). The simulated register evaluates cos, sin, sqrt, asin, acos, atan2 and floor through the `libm` crate on the std and

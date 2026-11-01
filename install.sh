@@ -2,10 +2,10 @@
 # probbit installer: fetches a prebuilt release archive, checks its SHA-256 and installs the `probbit` binary. Never uses sudo.
 #
 #   curl -fsSL https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.sh | sh
-#   curl -fsSL https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.sh | PROBBIT_VERSION=v0.13.0 sh
+#   curl -fsSL https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.sh | PROBBIT_VERSION=v0.14.0 sh
 #
 # Environment (all optional):
-#   PROBBIT_VERSION        release tag, e.g. v0.13.0 (default: the latest release)
+#   PROBBIT_VERSION        release tag, e.g. v0.14.0 (default: the latest release)
 #   PROBBIT_INSTALL_DIR    where `probbit` goes (default: ~/.local/bin; never overwrites a system-wide install implicitly)
 #   PROBBIT_DOWNLOAD_BASE  the archive is fetched from $PROBBIT_DOWNLOAD_BASE/<tag>/probbit-<tag>-<target>.tar.gz
 #                       (default: https://github.com/BitmapAsset/probbit/releases/download); needs PROBBIT_VERSION
@@ -103,7 +103,7 @@ main() {
 
     version="${PROBBIT_VERSION:-}"
     if [ -z "$version" ]; then
-        [ -z "${PROBBIT_DOWNLOAD_BASE:-}" ] || die "set PROBBIT_VERSION (e.g. v0.13.0) together with PROBBIT_DOWNLOAD_BASE"
+        [ -z "${PROBBIT_DOWNLOAD_BASE:-}" ] || die "set PROBBIT_VERSION (e.g. v0.14.0) together with PROBBIT_DOWNLOAD_BASE"
         version=$(latest_tag) || exit 1
         [ -n "$version" ] || die "no published release found (set PROBBIT_VERSION)"
     fi

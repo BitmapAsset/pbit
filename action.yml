@@ -21,7 +21,7 @@ inputs:
     description: Events per fuzzed script, 1 to 64 (empty = probbit's default, 8).
     default: ''
   version:
-    description: The probbit release to install with install.sh (latest, or a tag such as v0.13.0). probbit check needs 0.9.0 or later.
+    description: The probbit release to install with install.sh (latest, or a tag such as v0.14.0). probbit check needs 0.9.0 or later.
     default: latest
   binary:
     description: Path to a probbit binary to use instead of installing one (for example one built earlier in the job). Overrides version.

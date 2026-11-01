@@ -1,6 +1,6 @@
 # RFC 0014: Integrity, the drift from the declared self
 
-Status: implemented (library and strand line), off by default; engine 0.14.0-dev on a draft PR · Changes: docs/persona.md
+Status: implemented (library and strand line), off by default; since 0.14.0 · Changes: docs/persona.md
 (the `identity` block's self keys, additive and outside the digest), one engine-gated field on event lines · Depends on:
 RFC 0004 (the allowance is its epsilon), RFC 0013 (the Mirror tab, where the per-trait table is to be shown)
 

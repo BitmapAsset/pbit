@@ -8,7 +8,7 @@ place to report what you got. An outside reproduction (or a disagreement) is wor
 ```sh
 npm i -g probbit            # or: curl -fsSL https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.sh | sh
 git clone https://github.com/BitmapAsset/probbit && cd probbit
-probbit version                                                   # probbit 0.13.0
+probbit version                                                   # probbit 0.14.0
 
 # a rule held by construction over 100 individuals (README, "Test a character")
 probbit persona prove examples/persona/tutor.yaml --seeds 0-99 --never '{when: {sentiment: negative}, then: {humour: {at_most: light}}}'

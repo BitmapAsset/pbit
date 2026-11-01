@@ -1,6 +1,7 @@
 {
   "name": "probbit",
-  "version": "0.13.0",
+  "version": "0.14.0",
+  "mcpName": "io.github.BitmapAsset/probbit",
   "description": "A personality, mood and memory layer for AI agents on an exact p-bit decision engine: an AI persona outside the model, every stance computed on a CPU, rules kept by construction, replayable and verifiable. Installs the prebuilt CLI and MCP server (probbit mcp). Offline, zero dependencies.",
   "license": "Apache-2.0",
   "repository": {

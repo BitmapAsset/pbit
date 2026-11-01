@@ -19,6 +19,6 @@ nostd = ["dep:probbit-nostd", "probbit-core/nostd", "probbit-ir/nostd"]
 [dependencies]
 # the amplitude register's one math path (cos, sin, sqrt, asin, acos, atan2) on the std and the no_std build alike (pure Rust)
 libm = "0.2"
-probbit-nostd = { path = "../probbit-nostd", version = "0.14.0-dev", optional = true }
-probbit-core = { path = "../probbit-core", default-features = false, version = "0.14.0-dev" }
-probbit-ir = { path = "../probbit-ir", default-features = false, version = "0.14.0-dev" }
+probbit-nostd = { path = "../probbit-nostd", version = "0.14.0", optional = true }
+probbit-core = { path = "../probbit-core", default-features = false, version = "0.14.0" }
+probbit-ir = { path = "../probbit-ir", default-features = false, version = "0.14.0" }

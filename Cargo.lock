@@ -40,7 +40,7 @@ dependencies = [
 
 [[package]]
 name = "probbit-cli"
-version = "0.14.0-dev"
+version = "0.14.0"
 dependencies = [
  "probbit-core",
  "probbit-decide",
@@ -50,14 +50,14 @@ dependencies = [
 
 [[package]]
 name = "probbit-core"
-version = "0.14.0-dev"
+version = "0.14.0"
 dependencies = [
  "probbit-nostd",
 ]
 
 [[package]]
 name = "probbit-decide"
-version = "0.14.0-dev"
+version = "0.14.0"
 dependencies = [
  "libm",
  "probbit-core",
@@ -67,7 +67,7 @@ dependencies = [
 
 [[package]]
 name = "probbit-ir"
-version = "0.14.0-dev"
+version = "0.14.0"
 dependencies = [
  "probbit-core",
  "probbit-nostd",
@@ -75,7 +75,7 @@ dependencies = [
 
 [[package]]
 name = "probbit-nostd"
-version = "0.14.0-dev"
+version = "0.14.0"
 dependencies = [
  "hashbrown",
  "libm",
@@ -84,7 +84,7 @@ dependencies = [
 
 [[package]]
 name = "probbit-persona"
-version = "0.14.0-dev"
+version = "0.14.0"
 dependencies = [
  "probbit-core",
  "probbit-decide",
@@ -94,7 +94,7 @@ dependencies = [
 
 [[package]]
 name = "probbit-wasm"
-version = "0.14.0-dev"
+version = "0.14.0"
 dependencies = [
  "probbit-core",
  "probbit-decide",

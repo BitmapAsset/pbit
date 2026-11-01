@@ -1,6 +1,6 @@
 # RFC 0013: self-report, a canonical account of the last N events from the strand alone
 
-Status: **implemented, off by default** (0.14.0-dev: `probbit reflect`, the library's `reflect` module, the engine-gated
+Status: **implemented, off by default** (since 0.14.0: `probbit reflect`, the library's `reflect` module, the engine-gated
 `reflection` line, the monitor's Mirror tab) · Changes: docs/persona.md §5.7 (one more line kind, 0.14.0+) and §5.8
 ("Self-report", "Mirror"), `probbit live control`, `live verify`, `probbit monitor` · Depends on: RFC 0009 (the expectation
 block and its receipts)

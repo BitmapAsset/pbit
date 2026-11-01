@@ -1,9 +1,9 @@
 # RFC 0011: an amplitude register, an exact simulated qubit register as an optional solver tier for small stance programs
 
-Status: **accepted as optional tier (research; off by default)**, round 3. Verdict by the registered rule (B4 ≥ 90 %): 96.29 %
+Status: **accepted as optional tier (off by default; `engine: {tier: amplitude}` the opt-in; in a release since 0.14.0)**, round 3. Verdict by the registered rule (B4 ≥ 90 %): 96.29 %
 of 2,176,371 trait decisions on the recorded corpus agree with the exact default tier; B5 passes (three designed programs differ
-from the thermal odds by 0.25-0.27 at the node; 0 of 4,100 bound cases exceed a certificate computed with the tier). Nothing in
-this RFC changes a release or `main`; the tier stays off unless a persona asks for it. Turning it on changes the bound
+from the thermal odds by 0.25-0.27 at the node; 0 of 4,100 bound cases exceed a certificate computed with the tier). The tier
+stays off unless a persona asks for it. Turning it on changes the bound
 certificate: compute it again with the tier (section 5). Round 4 adds `engine.amplify` (off by default): exact amplitude
 amplification in place of the projection, which lands on the projection's numbers with feasible mass 1 (section 5,
 "Amplification"). Round 5 adds `engine.schedule` (absent = the default sweep): a longer sweep separates the top two levels

@@ -1,7 +1,7 @@
 # RFC 0015: Memory consolidation, a rest pass that compacts what was lived and logs what changed
 
 Status: implemented (library `Live::consolidate` / `consolidate_boxed`, the `consolidation` strand line, `live control STRAND
-rest`), off by default; engine 0.14.0-dev on a draft PR · Changes: docs/persona.md (§2.17, an optional `rest` key of the
+rest`), off by default; since 0.14.0 · Changes: docs/persona.md (§2.17, an optional `rest` key of the
 `expectation` block, outside the digest as the whole block is), one engine-gated line kind, one key in the expectation's checkpoint memory · Depends on:
 RFC 0009 (the expectation's memory and its z), RFC 0013 (the reflection reports the pass), RFC 0016 (its fold is left as it is)
 

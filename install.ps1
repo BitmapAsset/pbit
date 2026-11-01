@@ -2,10 +2,10 @@
 # and installs probbit.exe. No administrator rights needed.
 #
 #   irm https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.ps1 | iex
-#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.ps1))) -Version v0.13.0
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.ps1))) -Version v0.14.0
 #
 # Parameters (each also read from the environment variable named after it):
-#   -Version       PROBBIT_VERSION        release tag, e.g. v0.13.0 (default: the latest release)
+#   -Version       PROBBIT_VERSION        release tag, e.g. v0.14.0 (default: the latest release)
 #   -InstallDir    PROBBIT_INSTALL_DIR    where probbit.exe goes (default: $HOME\.local\bin)
 #   -DownloadBase  PROBBIT_DOWNLOAD_BASE  the archive is fetched from <DownloadBase>/<tag>/probbit-<tag>-<target>.zip
 #                                      (default: https://github.com/BitmapAsset/probbit/releases/download); needs -Version
@@ -37,7 +37,7 @@ $customBase = [bool]$DownloadBase
 if (-not $DownloadBase) { $DownloadBase = "https://github.com/$Repo/releases/download" }
 $DownloadBase = $DownloadBase.TrimEnd('/')
 if (-not $Version) {
-    if ($customBase) { throw 'probbit install: set -Version (or PROBBIT_VERSION), e.g. v0.13.0, together with -DownloadBase' }
+    if ($customBase) { throw 'probbit install: set -Version (or PROBBIT_VERSION), e.g. v0.14.0, together with -DownloadBase' }
     $Version = (Invoke-RestMethod -UseBasicParsing -Uri "https://api.github.com/repos/$Repo/releases/latest").tag_name
     if (-not $Version) { throw 'probbit install: no published release found (set -Version)' }
 }
