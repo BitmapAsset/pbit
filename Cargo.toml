@@ -3,7 +3,7 @@ resolver = "2"
 members = ["probbit-nostd", "probbit-core", "probbit-ir", "probbit-decide", "probbit-persona", "probbit-cli", "probbit-wasm"]
 
 [workspace.package]
-version = "0.14.0"
+version = "0.14.1-dev"
 edition = "2021"
 license = "Apache-2.0"
 rust-version = "1.78"
