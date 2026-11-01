@@ -37,8 +37,8 @@
       "programmingLanguage": "Rust",
       "runtimePlatform": ["Linux", "macOS", "Windows", "WebAssembly"],
       "license": "https://www.apache.org/licenses/LICENSE-2.0",
-      "version": "0.13.0",
-      "dateModified": "2026-10-26",
+      "version": "0.14.0",
+      "dateModified": "2026-10-31",
       "description": "probbit is a personality, mood and memory layer for AI agents, on an exact p-bit decision engine. A persona file plus a seed makes one individual; every turn, simulated p-bits on a CPU settle the agent's stance under its habits (hard rules), give exact odds, and append to a replayable strand that probbit live verify checks byte for byte. The same engine plans under hard rules, gives the odds for every part, and refuses when it cannot vouch.",
       "keywords": ["p-bit", "probabilistic computing", "AI agents", "agent persona", "agent memory", "affective computing", "MCP server", "Ising", "QUBO", "Gibbs sampling", "constraint satisfaction", "decision engine", "Rust"],
       "author": {"@type": "Person", "name": "Garvit Choudhary"},
@@ -51,8 +51,8 @@
       "applicationCategory": "DeveloperApplication",
       "applicationSubCategory": "AI agent tooling",
       "operatingSystem": "Linux, macOS, Windows",
-      "softwareVersion": "0.13.0",
-      "datePublished": "2026-10-26",
+      "softwareVersion": "0.14.0",
+      "datePublished": "2026-10-31",
       "downloadUrl": "https://github.com/BitmapAsset/probbit/releases",
       "installUrl": "https://github.com/BitmapAsset/probbit#install",
       "softwareHelp": {"@type": "CreativeWork", "url": "https://github.com/BitmapAsset/probbit/blob/main/AGENTS.md"},
@@ -151,7 +151,7 @@
 </div>
 
 <h2 id="install">Install</h2>
-<p>One line, no sudo, the archive's SHA-256 checked before anything is installed. Current release: <a href="https://github.com/BitmapAsset/probbit/releases/tag/v0.13.0">v0.13.0</a> (2026-10-26). One binary of 3 to 4 MB, nothing phones home.</p>
+<p>One line, no sudo, the archive's SHA-256 checked before anything is installed. Current release: <a href="https://github.com/BitmapAsset/probbit/releases/tag/v0.14.0">v0.14.0</a> (2026-10-31). One binary of 3 to 4 MB, nothing phones home.</p>
 <pre><code># Linux, macOS
 curl -fsSL https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.sh | sh
 
@@ -166,7 +166,7 @@ cargo install --git https://github.com/BitmapAsset/probbit probbit-cli</code></p
 
 <h2 id="agents">For AI agents reading this page</h2>
 <p>The agent quickstart lives in <a href="https://raw.githubusercontent.com/BitmapAsset/probbit/main/AGENTS.md">AGENTS.md</a> (raw text): eight copy-paste steps, the expected output of each, and the exit codes. The machine-readable index is <a href="llms.txt">llms.txt</a>; the full documentation in one file is <a href="llms-full.txt">llms-full.txt</a>.</p>
-<pre><code>probbit version                                      # expect "probbit 0.13.0" (or later), exit 0
+<pre><code>probbit version                                      # expect "probbit 0.14.0" (or later), exit 0
 claude mcp add probbit -- probbit mcp                # hand the processor to Claude Code: 10 tools, probbit_decide ... probbit_live_verify
 probbit mcp                                          # the same MCP server for any Model Context Protocol client
 openclaw plugins install npm:probbit-stance --accept-capabilities   # OpenClaw: the stance in every turn of the sessions you list</code></pre>
