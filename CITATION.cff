@@ -3,7 +3,7 @@ message: "If you use probbit in research or a product, please cite it as below."
 title: "probbit: an exact, auditable stance layer beside language-model agents"
 type: software
 version: 0.14.0
-date-released: 2026-10-30
+date-released: 2026-10-31
 license: Apache-2.0
 repository-code: "https://github.com/BitmapAsset/probbit"
 url: "https://github.com/BitmapAsset/probbit"

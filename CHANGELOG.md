@@ -5,7 +5,7 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
-## 0.14.0 - 2026-10-30
+## 0.14.0 - 2026-10-31
 
 0.14.0 makes the persona layer a library crate, `probbit-persona` (std, and `no_std` + `alloc` checked on
 `xtensa-esp32s3-none-elf`), and fits it to a small host: heap-returning setup, turn and resume (one event's stack
