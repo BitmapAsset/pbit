@@ -10,7 +10,7 @@ Every claim below matches the README and `probbit mcp`'s own `tools/list` (0.13.
 | name | probbit |
 | display name | probbit: personality, mood and memory for AI agents, and an exact p-bit decision engine |
 | short description (≤ 100 chars) | A personality, mood and memory layer for AI agents, plus exact plans under hard rules. Offline. |
-| description | probbit gives an agent an individual that lives outside the model: a persona file plus a seed, a stance every turn (exact odds per trait, habits as hard rules) and a replayable, verifiable strand. The same engine, simulated p-bits on a CPU, settles plans under hard rules, gives the odds for every part and refuses when it cannot vouch. One zero-dependency binary; no network, no API key. |
+| description | probbit gives an agent an individual that lives outside the model: a persona file plus a seed, a stance every turn (exact odds per trait, habits as hard rules) and a replayable, verifiable strand. The same engine, simulated p-bits on a CPU, settles plans under hard rules, gives the odds for every part and refuses when it cannot vouch. One binary; default: `libm` for amplitude-register math; `nostd` adds `hashbrown` and `portable-atomic`. No runtime network or API key. |
 | categories / tags | ai-agents, agent-memory, persona, agent-personality, decision-making, constraint-solver, scheduling, developer-tools |
 | repository | https://github.com/BitmapAsset/probbit |
 | homepage | https://github.com/BitmapAsset/probbit#readme |

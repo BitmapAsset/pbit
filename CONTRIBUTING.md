@@ -6,7 +6,7 @@ rules that keep its claims honest.
 ## Build and test
 
 ```
-cargo build --release --workspace          # no network needed: there are no external crates
+cargo build --release --workspace          # offline once the dependencies below are cached
 cargo test --release --workspace           # unit, integration, regression and exact-oracle tests
 cargo run --release -p probbit-cli -- demo --tasks 12 | cargo run --release -p probbit-cli -- decide --pretty
 ```
@@ -30,7 +30,9 @@ committed man page: `cargo run -p probbit-cli -- man > docs/probbit.1` (test `co
 
 ## Ground rules
 
-- **No external crates on the shipped path.** `cargo build` must keep working offline.
+- **Keep dependencies small.** The default build uses one third-party crate, `libm`, for amplitude-register math.
+  The `nostd` build adds `hashbrown` and `portable-atomic` (and their transitive dependencies).
+  `cargo build --offline` works with dependencies cached.
 - **Every number in the docs points at something runnable**: a test, an example under
   `examples/`, or a script under `bench/`. A change that moves a number updates the table it
   lives in (`BENCHMARKS.md`, `USE-CASES.md`, `docs/probbit-ir-json.md`) with the machine, the load

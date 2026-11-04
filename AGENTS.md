@@ -68,5 +68,5 @@ secrets). A command that does not print what this file says it prints is a bug i
 
 ## For contributors
 
-Build: `cargo build --release -p probbit-cli` (Rust 1.78+, no external crates). Test: `cargo test --release --workspace`.
+Build: `cargo build --release -p probbit-cli` (Rust 1.78+; default: `libm` for amplitude-register math; `nostd` adds `hashbrown` and `portable-atomic`). Test: `cargo test --release --workspace`.
 Docs and metadata changes: keep every claim tied to a measurement in BENCHMARKS.md or a test. See CONTRIBUTING.md.

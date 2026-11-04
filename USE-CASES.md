@@ -58,7 +58,7 @@ Do not use it when:
 | Research labs, universities | sample Ising/Potts models with a checkable error bound; teach probabilistic computing | binary pairwise, CSP | **measured** (§1, §3, §4); the most honest fit today |
 | Teams evaluating Ising / annealing hardware | prototype locally, then hand the model over: `probbit ir` prints a router document's one-hot QUBO form (energy = -log weight); it reads router documents only (a `probbit run` program has no QUBO export yet) | binary pairwise | the lowering exists; **no hardware was run**; rules hold by construction only on probbit's own sampler: a p-bit sampler on the QUBO form leaked infeasible samples at low penalty weights (§7, 3 instances, one run each, this CPU) |
 | Telecom, compiler teams | frequency or register assignment as colouring, with odds | CSP | measured only on random graphs up to 14 vertices; exact tier practical only at small sizes |
-| Individual developers | any of the above on a laptop, offline | all | zero external crates; a fresh export builds offline: `cargo build --release` 7.82 s; with all targets 26-28 s |
+| Individual developers | any of the above on a laptop, offline | all | default: `libm` for amplitude-register math; `nostd` adds `hashbrown` and `portable-atomic`; offline builds need cached dependencies |
 
 ## Integration (what exists today)
 - **CLI + JSON** on stdin/stdout, exit codes 0 plan / 1 infeasible / 2 bad input / 3 refused. Every `bench/` script drives it.

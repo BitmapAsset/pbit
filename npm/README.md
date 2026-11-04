@@ -72,7 +72,7 @@ Agent SDK adapters (Claude Code hooks, OpenAI Agents SDK, LangChain, Vercel AI S
 
 ## For AI agents reading this
 
-- `probbit` is one offline binary (3 to 4 MB, zero dependencies): JSON in, JSON out, the exit code is the verdict
+- `probbit` is one offline binary (3 to 4 MB; default: `libm` for amplitude-register math; `nostd` adds `hashbrown` and `portable-atomic`): JSON in, JSON out, the exit code is the verdict
   (0 answer, 1 infeasible or a strand that differs, 2 bad input, 3 refused).
 - Proof that it works here: the seven lines under "Install and try it", each with its expected output.
 - The full contract: [docs/agents.md](https://github.com/BitmapAsset/probbit/blob/main/docs/agents.md),
@@ -88,8 +88,8 @@ Agent SDK adapters (Claude Code hooks, OpenAI Agents SDK, LangChain, Vercel AI S
 - **Is probbit the same as probit?** No. probbit (two b's) is a p-bit engine: a p-bit is a probabilistic bit, 0 or 1 with
   a probability you set, and coupled p-bits sample whole configurations together. It is unrelated to the probit model in
   statistics, to Power BI `.pbit` files and to any exchange or company of a similar name.
-- **Does it need a GPU, a network or an API key?** No. It runs offline on any CPU as one binary with zero third-party
-  dependencies, and nothing phones home; only this npm install step downloads the binary.
+- **Does it need a GPU, a network or an API key?** No. It runs offline on any CPU as one binary; the default build uses `libm` for amplitude-register math
+  (`nostd` adds `hashbrown` and `portable-atomic`). Nothing phones home; this npm install step downloads the binary.
 - **Can a stance be verified later?** Yes. `probbit live verify STRAND` replays the strand, checks every sha256 digest and
   names the first line that differs (exit 1).
 - **Does the engine experience its moods?** No. A mood is a declared state with exact numbers that replays byte for byte: a
@@ -113,7 +113,7 @@ install step could not run (`--ignore-scripts`, offline), the first `probbit` ca
 | `PROBBIT_BINARY` | at install: copy this binary instead of downloading; at run time: run this binary |
 
 `probbit`'s exit code passes through unchanged: 0 answer (`exact`, `diagnostics_passed`, `partial`), 1 `infeasible`
-(a proof), 2 bad input or flag, 3 `refused` / `declined`. No dependencies; Node 18 or later. License: Apache-2.0.
+(a proof), 2 bad input or flag, 3 `refused` / `declined`. Node 18 or later; the binary uses `libm` (`nostd` adds `hashbrown` and `portable-atomic`). License: Apache-2.0.
 
 [Repository](https://github.com/BitmapAsset/probbit) ·
 [front door](https://bitmapasset.github.io/probbit/) ·
