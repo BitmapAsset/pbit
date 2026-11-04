@@ -17,6 +17,7 @@
 //!   probbit <command> --help | -h               # usage, every flag with its default, exit codes
 //!   probbit --help | -h                          # the usage above (stdout, exit 0); at a terminal the hero screen
 //!   --top, --summary (decide, run), --live (demo), --plain: see `probbit <command> --help`; visuals go to stderr (theme.rs)
+mod explain;
 mod fuzz;
 mod labels;
 mod live;
@@ -379,6 +380,18 @@ pub(crate) static COMMANDS: &[Command] = &[
             ("exit", "0 every line replays, 1 a line differs (the frame names it and shows the event before it), 2 a bad flag, a port that cannot be had, or a file that cannot be read or is not a strand.")],
         examples: &["probbit monitor --demo --open", "probbit monitor pip.strand --follow", "probbit monitor pip.strand --serve --port 8080"],
         run: monitor::cmd },
+    Command { name: "explain", aliases: &[], group: "live", summary: "explain one logged event: inputs, stance, binding habits and replay result",
+        usage: &["explain STRAND --event N [--json]"],
+        about: "Read-only replay through event N (1-based strand event number): its logged inputs and flags, elapsed hours, the previous and recomputed stance with odds, binding habits and their constraints, previous hash -> this hash, and recomputes or differs. The first event has initial levels but no previous odds. Later lines are not verified; use live verify for the whole strand. Habits constrain the stance, not the model's words or actions.",
+        before: &[],
+        flags: &[&[
+            Flag { name: "--event", arg: "N", help: "required: the 1-based event number in the strand, not its file line or persona turn" },
+            Flag { name: "--json", arg: "", help: "structured explanation instead of plain English" },
+        ]],
+        subs: &[], list_subs: false, shared: false,
+        after: &[("exit", "0 recomputes, 1 differs (including a broken prefix), 2 bad flag, missing file, out-of-range event or malformed input, 5 unsupported field or line kind.")],
+        examples: &["probbit explain pip.strand --event 2", "probbit explain pip.strand --event 2 --json"],
+        run: explain::cmd },
     Command { name: "reflect", aliases: &[], group: "live", summary: "RFC 0013 self-report: a canonical account of a strand's last N events, from its lines alone",
         usage: &["reflect STRAND [--last N | --since-checkpoint] [--json | --text]"],
         about: "The self-report (docs/persona.md §5.8): a canonical document computed from the strand's lines alone (no turn is run, nothing is solved, nothing is random): over the window, the inputs set, the expectation's surprises (each receipt's z recomputed from the logged receipts; the K = 5 largest |z| with the predicted and measured values), per trait the levels taken and the odds' drift, the moods' path with its turning points, the drives' peaks and the habits that bound (read from the checkpoint lines in the window: a window without one reports them as null), the credit settled, the learned weights' net movement and the control lines; every number at 6 decimals, `digest` = the sha256 of the canonical text, and `summary`: 6 to 12 sentences from fixed templates. `probbit live control STRAND reflect` appends it as a line (0.14.0 strands), which `live verify` recomputes.",

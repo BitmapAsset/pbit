@@ -100,6 +100,7 @@ stance `line` into your model's prompt each turn; the model chooses its words an
 | surface | how | one command that proves it works |
 |---|---|---|
 | CLI | the install line above, `npm i -g probbit`, or `install.ps1` | `probbit demo --tasks 12 \| probbit decide --summary` → `"verdict":"exact"`, `"violations":0` |
+| CLI event receipt (unreleased) | [explain one logged turn](docs/CHEATSHEET.md#probbit-explain-strand---event-n-unreleased) | `probbit explain run.strand --event 2` → inputs, before/after stance, binding habits, chain and `recomputes` or `differs`; add `--json` |
 | MCP server (Claude Code, Codex, Cursor, mcporter, any MCP client) | `claude mcp add probbit -- probbit mcp` ([docs/agents.md](docs/agents.md)) | step 8 above: 10 tools, `probbit_decide` … `probbit_live_verify` |
 | OpenClaw plugin | `openclaw plugins install npm:probbit-stance --accept-capabilities` | `openclaw plugins inspect probbit-stance --runtime --json` lists both hooks ([plugins/openclaw](plugins/openclaw/README.md)) |
 | npm | `npm i -g probbit` (Node 18+; downloads the prebuilt binary, SHA-256 checked) | `probbit --version` → `probbit 0.14.0` |

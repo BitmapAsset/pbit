@@ -5,6 +5,20 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
+### Added
+
+- `probbit explain STRAND --event N [--json]`: a read-only explanation of one strand event, with logged inputs and
+  flags, elapsed time, previous and recomputed stance/odds, binding habits and their constraints, chain hashes and
+  `recomputes` / `differs`. Uses the same replay and turn paths as `live verify`, through the selected event only.
+  Exit 0 recomputes, 1 differs, 2 bad input, 5 unsupported; existing commands and strand digests are unchanged.
+- [From SOUL.md to stance habits](docs/soul-to-habits.md): the bench-assistant worked example, rules-file mappings
+  and the boundaries between stance constraints, model behavior and host action enforcement.
+
+### Changed
+
+- The README distinguishes enforced stance habits from model obedience, limits replay claims to measured checks,
+  and links to the changelog for release notes. Install and quickstart paths stay in place.
+
 ## 0.14.1 - Unreleased
 
 ### Fixed

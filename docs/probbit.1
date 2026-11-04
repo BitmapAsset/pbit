@@ -26,6 +26,7 @@ probbit \- a virtual probabilistic (p\-bit) processor: joint decisions under har
         [\-\-open] [\-\-port N]
 \fBprobbit\fR monitor \-\-demo [week|drives] [\-\-once] [\-\-plain] [\-\-serve]
         [\-\-open] [\-\-port N]
+\fBprobbit\fR explain STRAND \-\-event N [\-\-json]
 \fBprobbit\fR reflect STRAND [\-\-last N | \-\-since\-checkpoint] [\-\-json | \-\-text]
 \fBprobbit\fR decide [flags] < router.json
 \fBprobbit\fR run [flags] < program.json
@@ -516,6 +517,34 @@ Examples:
 probbit monitor \-\-demo \-\-open
 probbit monitor pip.strand \-\-follow
 probbit monitor pip.strand \-\-serve \-\-port 8080
+.fi
+.RE
+.SS explain
+explain one logged event: inputs, stance, binding habits and replay result
+.PP
+.nf
+\fBprobbit\fR explain STRAND \-\-event N [\-\-json]
+.fi
+.PP
+Read\-only replay through event N (1\-based strand event number): its logged inputs and flags, elapsed hours, the previous and recomputed stance with odds, binding habits and their constraints, previous hash \-> this hash, and recomputes or differs. The first event has initial levels but no previous odds. Later lines are not verified; use live verify for the whole strand. Habits constrain the stance, not the model's words or actions.
+.PP
+Flags:
+.RS 4
+.TP
+\fB\-\-event\fR \fIN\fR
+required: the 1\-based event number in the strand, not its file line or persona turn
+.TP
+\fB\-\-json\fR
+structured explanation instead of plain English
+.RE
+.PP
+\fIexit\fR: 0 recomputes, 1 differs (including a broken prefix), 2 bad flag, missing file, out\-of\-range event or malformed input, 5 unsupported field or line kind.
+.PP
+Examples:
+.RS 4
+.nf
+probbit explain pip.strand \-\-event 2
+probbit explain pip.strand \-\-event 2 \-\-json
 .fi
 .RE
 .SS reflect
