@@ -6,9 +6,8 @@ commands assume `gh` is logged in to an account that can push tags to `BitmapAss
 ## The landing-page rule
 
 Every release updates the landing page in its release PR: `README.md`'s line "The current release is vX.Y.Z.", every
-release tag the README shows (the GitHub Action example and its `version` input), and the "What's new in X.Y.Z" block
-(what changed, whether it is opt-in, the measured numbers with their BENCHMARKS.md section, links to the release notes and
-the RFC). `probbit-cli/tests/readme_release.rs` fails when the README's current release disagrees with `Cargo.toml`
+release tag the README shows (the GitHub Action example and its `version` input), and the link to `CHANGELOG.md`, where release notes belong
+(what changed, whether it is opt-in, the measured numbers with their BENCHMARKS.md section and links to the RFCs). `probbit-cli/tests/readme_release.rs` fails when the README's current release disagrees with `Cargo.toml`
 (equal on a release, lower on a `-dev` build) or when the README shows a tag newer than it.
 
 ## Steps
