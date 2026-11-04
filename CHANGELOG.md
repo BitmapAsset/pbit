@@ -5,6 +5,18 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
+## 0.14.1 - Unreleased
+
+### Fixed
+
+- Correct current dependency claims: the default build uses `libm` for amplitude-register math; `nostd` adds
+  `hashbrown` and `portable-atomic`. Offline source builds require cached dependencies.
+- Give the CI 300-task demo a 1500 ms budget (previously 300 ms) for slow runners; the same pipeline must still succeed.
+- Correct the OpenClaw plugin test count in the adapter guide to 160 (107 direct tests and 53 classifier cases).
+- Add docs-bundle regeneration to the release PR checklist, with `scripts/generate_llms_full.py` and its `--check` mode;
+  add the post-publication Pages front-door version and JSON-LD `softwareVersion` update on `gh-pages`.
+- Match the AgentDojo benchmark reproduction wording to CI: pushes to `main` and pull requests.
+
 ## 0.14.0 - 2026-10-31
 
 0.14.0 makes the persona layer a library crate, `probbit-persona` (std, and `no_std` + `alloc` checked on
