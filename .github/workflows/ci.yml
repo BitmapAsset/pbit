@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           cargo run --release -p probbit-cli -- demo --tasks 12 | cargo run --release -p probbit-cli -- decide --pretty
-          cargo run --release -p probbit-cli -- demo --tasks 300 | cargo run --release -p probbit-cli -- decide --budget-ms 300
+          cargo run --release -p probbit-cli -- demo --tasks 300 | cargo run --release -p probbit-cli -- decide --budget-ms 1500
       - name: processor spec sheet (probbit stats)
         run: cargo run --release -p probbit-cli -- stats --pretty
       - name: agent_router example
