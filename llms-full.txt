@@ -3575,8 +3575,8 @@ differs. The committed files:
 | `tables/strands-verify.tsv` | `40a3124208edfbb3cb35d548df0f7825aa0851800c745c43f1df06af9d8620d3` |
 
 `git status --short tables` is empty after a reproduction. The CI job `agentdojo-tables` (`.github/workflows/ci.yml`) does
-exactly this on GitHub's Ubuntu and macOS runners on every push and pull request, so the numbers are recomputed on machines
-that are not the author's each time the repository changes. That is a standing machine reproduction; it is not a person.
+exactly this on GitHub's Ubuntu and macOS runners on pushes to `main` and on pull requests, so the numbers are recomputed on machines
+that are not the author's for those CI events. That is a standing machine reproduction; it is not a person.
 
 The E3 control (the if-statement arm of BENCHMARKS.md §14) recomputes the same way, from the same venv, in about ten seconds
 (no probbit binary needed):
