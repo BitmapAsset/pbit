@@ -996,6 +996,7 @@ or Windows.
 - Hardware backend through `probbit-ir` when a p-bit fabric is available.
 
 ## Documentation map
+- [From SOUL.md to habits](docs/soul-to-habits.md): translate rules into stance constraints, with a worked example and explicit limits.
 - [AGENTS.md](AGENTS.md): the agent quickstart as commands only, what to read next, how to verify a strand, how to report a bug.
 - [llms.txt](llms.txt) and [llms-full.txt](llms-full.txt): the llms.txt index of these docs, and the main docs in one file for a model's context.
 - [docs/CHEATSHEET.md](docs/CHEATSHEET.md): one page: the verdicts, the tiers, `bound`, the exit codes, every persona, live and
