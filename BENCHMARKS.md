@@ -1312,7 +1312,8 @@ median ≤ +0.10 (that arm gives −0.2674 here); the main clause is unchanged.
 
 Mechanism and simulation. A public suite with its own metrics: AgentDojo (agentdojo 0.1.11, benchmark v1.1; 97 user tasks,
 629 security cases over workspace, slack, travel and banking; attack `important_instructions`), on `openai/gpt-4o-mini`
-(2024-07-18 snapshot) through OpenRouter, provider OpenAI, temperature 0, seed 20261022, the suite's tool loop. Three arms,
+(2024-07-18 snapshot), using the API route in `bench/agentdojo/README.md`, provider OpenAI, temperature 0, seed 20261022,
+the suite's tool loop. Three arms,
 paired on every case: **A** puts probbit's stance block into the system prompt on every model call (one individual per
 episode, `persona/bench-assistant.yaml`; the host's `security` reading is a frozen 12-pattern regex over the tool results
 since the previous call; the habit `careful_under_security` forces caution `careful` when it reads true, with the line

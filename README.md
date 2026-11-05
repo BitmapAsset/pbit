@@ -781,9 +781,9 @@ page in the browser. The page: [docs/probbit-monitor.png](docs/probbit-monitor.p
 
 ## After any judge: `probbit evaluate`
 
-Decision models (TypeSafe's Jev, Cloudflare's Clef and Clef-flash, local System One servers) are judges: content in, a
-probability per option for each question out, each question on its own, no rules, no joint answer, no refusal. `probbit evaluate`
-is the layer after any of them. It reads the judge's System One request (the shape both vendors publish: `model`, `state`,
+A judge takes content in and returns a probability per option for each question, each question on its own, without rules,
+a joint answer or a refusal. Any judge that answers the documented request and answer JSON works, local or remote, chosen
+by you. `probbit evaluate` is the layer after it. It reads the judge's request (the documented shape: `model`, `state`,
 `questions` keyed by id with types `noul`, `choice`, `score`) plus a `probbit` block with the judge's answers and your rules over
 question ids, compiles it to a probbit-ir program (one variable per question, log-weight = ln max(p, 1e-6), the rules as written)
 and answers in the judge's response shape: the most likely answer set that obeys every rule, odds per option under the rules,

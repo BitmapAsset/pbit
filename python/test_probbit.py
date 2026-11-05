@@ -95,12 +95,12 @@ class Evaluate(unittest.TestCase):
         os.environ.pop(KEY_VAR, None)
 
     def test_judge_url_round_trip(self):
-        with MockJudge(judge_rows(self.full), model="jev-latest", key="k-123") as m:
+        with MockJudge(judge_rows(self.full), model="example-judge", key="k-123") as m:
             a = probbit.evaluate(dict(self.ask, probbit=self.rules), judge=m.url, auth_env=KEY_VAR)
         (path, headers, body), = m.requests
         self.assertEqual(path, "/v1/systemone"); self.assertEqual(headers["Authorization"], "Bearer k-123")
         self.assertEqual(json.loads(body), self.ask)  # state, instructions, criteria carried untouched; no probbit block
-        self.assertEqual((a["verdict"], a["violations"], a["model"]), ("exact", 0, "jev-latest"))
+        self.assertEqual((a["verdict"], a["violations"], a["model"]), ("exact", 0, "example-judge"))
         self.assertEqual([k for k, x in a["answers"].items() if x["probbit"]["changed"]], ["team", "severity", "refund_action", "escalate_to_human", "reply_channel"])
         inline = probbit.evaluate(self.full)  # the same judge numbers given inline: the same answer
         strip = lambda d: {k: v for k, v in d.items() if k not in ("ms", "telemetry", "phases", "usage")}

@@ -207,7 +207,7 @@ fn the_program_round_trips_through_run() {
 #[test]
 fn answers_have_the_vendor_shape() {
     let (c, out, err) = probbit(&["evaluate"], EX); assert_eq!(c, 0, "{err}"); let d = parse(&out); let req = parse(EX);
-    assert_eq!(d.get("model").and_then(Json::as_str), Some("jev-latest")); assert_eq!(d.get("usage"), req.get("probbit").and_then(|p| p.get("judge")).and_then(|j| j.get("usage")));
+    assert_eq!(d.get("model").and_then(Json::as_str), Some("example-judge")); assert_eq!(d.get("usage"), req.get("probbit").and_then(|p| p.get("judge")).and_then(|j| j.get("usage")));
     let Some(Json::Obj(ans)) = d.get("answers") else { panic!("answers") }; let Some(Json::Obj(qs)) = req.get("questions") else { panic!() };
     assert_eq!(ans.iter().map(|(k, _)| k).collect::<Vec<_>>(), qs.iter().map(|(k, _)| k).collect::<Vec<_>>(), "one answer per question, in order");
     let unit = |x: Option<&Json>| { let p = x.and_then(Json::as_f64).unwrap(); assert!((0.0..=1.0).contains(&p), "{p}"); p };

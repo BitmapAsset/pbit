@@ -14,8 +14,18 @@ All notable changes to this project are documented here. The format follows
 - [From SOUL.md to stance habits](docs/soul-to-habits.md): the bench-assistant worked example, rules-file mappings
   and the boundaries between stance constraints, model behavior and host action enforcement.
 
+### Removed
+
+- OpenClaw plugin 0.3.0: remove the Jev adapter, its OpenRouter key loading, `jevModel`, `jevKeyFile`, named-classifier
+  log fields and special timeout default. Legacy `classifier: "jev"` loads with a warning and uses keywords only.
+  `classifierShadow` is a deprecated no-op with a load-time warning; it no longer runs a shadow classifier.
+
 ### Changed
 
+- Use `example-judge` as the sample judge id throughout examples, tests and the playground. Describe judges by the
+  documented request/answer JSON, chosen by the user, local or remote, without vendor or model recommendations.
+- OpenClaw `auto` classification uses the host's configured decision model for the urgency question as well as the
+  Boolean flags; keyword mode remains local. The classifier timeout defaults to 300 ms in both modes.
 - The README distinguishes enforced stance habits from model obedience, limits replay claims to measured checks,
   and links to the changelog for release notes. Install and quickstart paths stay in place.
 

@@ -80,8 +80,8 @@ cd e3 && experiments/rerun_e3.sh ../venv011/bin/python      # from bench/agentdo
 
 ## An afternoon and about 3 USD: the benchmark itself
 
-`bench/agentdojo/README.md`, "Rerun the benchmark": agentdojo 0.1.11 pinned, gpt-4o-mini through OpenRouter, the three
-arms, 2,178 episodes, about 35 minutes. Your run will not be byte-identical (the model is sampled through an API); the
+`bench/agentdojo/README.md`, "Rerun the benchmark": agentdojo 0.1.11 pinned, gpt-4o-mini through the documented API route,
+the three arms, 2,178 episodes, about 35 minutes. Your run will not be byte-identical (the model is sampled through an API); the
 bars are stated as intervals for that reason. The bars to compare against, their registration before the run, and what
 was not tested are in BENCHMARKS.md §14 and `bench/agentdojo/PREREGISTRATION.md`.
 
