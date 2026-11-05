@@ -1,6 +1,6 @@
 [package]
 name = "probbit-cli"
-description = "probbit: a personality, mood and memory layer for AI agents on an exact p-bit decision engine (plans under hard rules, gated odds, refusal), simulated on a CPU. CLI and MCP server; JSON in, JSON out, zero dependencies."
+description = "probbit: a personality, mood and memory layer for AI agents on an exact p-bit decision engine (plans under hard rules, gated odds, refusal), simulated on a CPU. CLI and MCP server; JSON in, JSON out, default build: libm for amplitude-register math; nostd adds hashbrown and portable-atomic."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

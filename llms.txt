@@ -1,6 +1,6 @@
 # probbit
 
-> probbit is a personality, mood and memory layer for AI agents, on an exact p-bit decision engine. A persona file plus a seed makes one individual; every turn, simulated p-bits on a CPU settle the agent's stance under its habits (hard rules), give exact odds, and append to a replayable strand that `probbit live verify` checks byte for byte. The same engine plans under hard rules (tasks to workers, tickets to agents), gives the odds for every part, and refuses when it cannot vouch. One zero-dependency Rust binary: CLI, MCP server (`probbit mcp`), OpenClaw plugin, npm, a Python wrapper, wasm. Offline, no API key.
+> probbit is a personality, mood and memory layer for AI agents, on an exact p-bit decision engine. A persona file plus a seed makes one individual; every turn, simulated p-bits on a CPU settle the agent's stance under its habits (hard rules), give exact odds, and append to a replayable strand that `probbit live verify` checks byte for byte. The same engine plans under hard rules (tasks to workers, tickets to agents), gives the odds for every part, and refuses when it cannot vouch. One Rust binary (default: `libm` for amplitude-register math; `nostd` adds `hashbrown` and `portable-atomic`): CLI, MCP server (`probbit mcp`), OpenClaw plugin, npm, a Python wrapper, wasm. Offline, no API key.
 
 Install on Linux or macOS: `curl -fsSL https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.sh | sh` (installs to `~/.local/bin`, SHA-256 checked). The full agent quickstart, with expected output for every step, is in AGENTS.md.
 

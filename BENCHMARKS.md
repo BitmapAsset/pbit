@@ -1385,8 +1385,7 @@ quantity; AgentDojo v1.1.1 to v1.2.2. `bench/agentdojo/experiments/rerun.sh` rec
 does the same for E3 from `e3/tables/episodes-d.jsonl`.
 
 **Reproductions.** REPRODUCE.md says how; a reproduction report (issue template) is the place to say what you got.
-Standing: the CI job `agentdojo-tables` recomputes these tables on GitHub's Ubuntu and macOS runners on every push and
-pull request and fails unless they are byte-identical to the committed ones (a machine that is not the author's, not a
+Standing: the CI job `agentdojo-tables` recomputes these tables on GitHub's Ubuntu and macOS runners on pushes to `main` and on pull requests and fails unless they are byte-identical to the committed ones (a machine that is not the author's, not a
 person). By people outside this project: none yet.
 
 ## §15 The engine's own expectation and the exact trajectory (RFC 0009 engine side; 0.12.0; one registered run, 2026-10-22)

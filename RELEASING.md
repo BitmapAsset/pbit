@@ -22,7 +22,9 @@ the RFC). `probbit-cli/tests/readme_release.rs` fails when the README's current 
      `.github/workflows/bench.yml`, `scripts/bench/test_install_ps1.ps1` and `scripts/tests/test_install_contract.py`;
      the title of `docs/CHEATSHEET.md`; the strand header example in `docs/persona.md` §5.7;
    - `CHANGELOG.md`: `## X.Y.Z - <date>`, with an upgrade note wherever an exit code or an output changes;
-   - the landing page (above).
+   - the landing page (above);
+   - regenerate `llms-full.txt` after all source-page edits: `python3 scripts/generate_llms_full.py`, then
+     `python3 scripts/generate_llms_full.py --check`; include the refreshed bundle in the release PR.
 
    Before merging: `git grep -n "X.Y.Z-dev"` finds only recorded test fixtures; `python3 bench/individuality/p0.py
    check` with the release build gives 0 differences (its corpus is never regenerated); `cargo publish --dry-run
@@ -52,7 +54,11 @@ the RFC). `probbit-cli/tests/readme_release.rs` fails when the README's current 
 6. **crates.io**: `cargo publish --workspace --locked` from the tag, which publishes in dependency order (`probbit-nostd`,
    `probbit-core`, `probbit-ir`, `probbit-decide`, `probbit-persona`, `probbit-cli`; `probbit-wasm` has `publish = false`).
    `probbit-nostd` goes first: the engine crates name it as an optional dependency with a version.
-7. **Back to development**: `main` moves to the next `-dev` version (`Cargo.toml`, the path dependencies, `Cargo.lock`,
+7. **Pages front door**, after publication: on the `gh-pages` branch, update `index.html`'s visible release version
+   and JSON-LD `softwareVersion` to X.Y.Z. Copy the release's `llms.txt` and regenerated `llms-full.txt` to that branch;
+   update the page dates and sitemap date. Review and publish that branch separately, then verify the served page text
+   and JSON-LD both name X.Y.Z.
+8. **Back to development**: `main` moves to the next `-dev` version (`Cargo.toml`, the path dependencies, `Cargo.lock`,
    `docs/probbit.1`); the README goes on naming the released version until the next release PR.
 
 ## Rollback

@@ -16,7 +16,8 @@ reads it as its instructions for how to write; an agent can read it to know its 
   none, verify first, ask first). The model still writes every word.
 
 This document is normative for the file format, the compilation, the stance document and the state. It is implemented by
-`probbit persona` (probbit-persona/src/persona.rs and yaml.rs, no dependency) and served on every surface with the same documents: the
+`probbit persona` (probbit-persona/src/persona.rs and yaml.rs; the default engine uses `libm` for amplitude-register math,
+`nostd` adds `hashbrown` and `portable-atomic`) and served on every surface with the same documents: the
 CLI, `probbit mcp` (tools `probbit_persona_init`, `probbit_persona_turn`), the Python wrapper (`probbit.persona_init`,
 `persona_turn`, `persona_replay`) and the browser module (probbit-wasm ops 4 and 5). `probbit live` (section 5.7, live.rs) keeps an
 individual running on a clock, with learning (section 2.8) and a replayable log; `probbit monitor` (section 5.8, monitor.rs)

@@ -8,7 +8,7 @@
   <b>A personality, mood and memory layer for AI agents, on an exact p-bit decision engine.</b><br>
   An AI persona that lives outside the model: every turn, simulated p-bits on a CPU settle the agent's stance under its
   habits, give the exact odds, and log a replayable, verifiable record. The same engine plans under hard rules and
-  refuses when it can't vouch. CLI, MCP server, OpenClaw plugin, npm, Python, wasm. Zero-dependency Rust.
+  refuses when it can't vouch. CLI, MCP server, OpenClaw plugin, npm, Python, wasm. Rust; one default third-party crate, libm.
 </p>
 
 <p align="center">
@@ -32,7 +32,8 @@
 curl -fsSL https://raw.githubusercontent.com/BitmapAsset/probbit/main/install.sh | sh
 ```
 Linux and macOS, no sudo, the archive's SHA-256 checked first. Windows, npm and the from-source build: [Install](#install).
-One binary of 3 to 4 MB, zero third-party dependencies, nothing phones home. Agents: start at
+One binary of 3 to 4 MB; one third-party crate in the default build (`libm`, for amplitude-register math).
+The `nostd` build adds `hashbrown` and `portable-atomic`. Nothing phones home. Agents: start at
 [For AI agents reading this](#for-ai-agents-reading-this), [AGENTS.md](AGENTS.md) and [llms.txt](llms.txt).
 
 | **60 PII leaks → 0** | **180,540 plans, counted exactly** | **refused → partial → passed** |
@@ -267,7 +268,7 @@ odds with a tiny error bar (see [Known failure modes](BENCHMARKS.md#known-failur
 
 A p-bit is a bit that is 0 or 1 with a tunable probability; coupled p-bits sample joint configurations. probbit is
 quantum-inspired and entirely classical (see "Is this quantum?" below): it runs on the CPU you already have, needs no
-network and has zero external crates. The same problem lowers to the QUBO/Ising form a p-bit or annealer chip takes (`probbit-ir`), which is the hardware
+network at runtime. The default build uses `libm` for amplitude-register math; `nostd` adds `hashbrown` and `portable-atomic`. The same problem lowers to the QUBO/Ising form a p-bit or annealer chip takes (`probbit-ir`), which is the hardware
 hand-off for later.
 
 ```
@@ -305,8 +306,8 @@ for Linux ARM64 and for x86_64 musl systems such as Alpine. The shell and PowerS
 downloaded candidate starts successfully before replacing an existing binary; failed checksums leave it unchanged.
 
 From source, with Rust 1.78 or later: `cargo install --git https://github.com/BitmapAsset/probbit probbit-cli`, or clone and
-`cargo build --release -p probbit-cli` (the binary lands in `target/release/probbit`). Nothing is downloaded after the clone:
-there are no external crates.
+`cargo build --release -p probbit-cli` (the binary lands in `target/release/probbit`). The default build downloads `libm` for amplitude-register math; `nostd` adds `hashbrown` and `portable-atomic`
+(and their transitive dependencies). With dependencies cached, builds work offline.
 
 At a terminal, `install.sh` ends with probbit's own hero screen. Platform notes and the installer tests: [PORTABILITY.md](PORTABILITY.md).
 
@@ -349,8 +350,8 @@ $ probbit demo --tasks 300 --hard | probbit decide --budget-ms 1000   # "diagnos
 (5 runs each on an Apple M4.) Every escalated task's odds are in the output; the decision is left to you. The budget is
 wall-clock, so a slower machine needs a longer one; `--sweeps N --polish-sweeps M` gives the same output on every machine.
 
-Everything runs with stock stable Rust and **no external crates**, so `cargo build` needs no network (a fresh export builds
-`cargo build --release` in 7.82 s and every target in 26-28 s on the M4).
+Everything runs with stock stable Rust. The default build uses `libm` for amplitude-register math; `nostd` adds
+`hashbrown` and `portable-atomic`. An offline build needs these dependencies cached first.
 
 ## Inside the processor
 
@@ -830,7 +831,8 @@ probbit monitor --demo drives --open       # synthetic goals/drive scenario
 Select a channel to inspect its units, range, distribution, source and the engine's `why`. Hold an event while new ones
 arrive, or follow latest. History means **recorded events, not seconds**. This is declared engine state, not thoughts or
 CPU/GPU/memory usage. Replay verification, stale event age, held view, paused/retired strand and lost connection are distinct.
-Everything is embedded in the CLI: no dependencies, external assets, telemetry or Electron installation.
+The monitor UI is embedded in the CLI: no external assets, telemetry or Electron installation. The binary uses `libm`;
+`nostd` builds also use `hashbrown` and `portable-atomic`.
 Several agents on one machine: `probbit monitor nova.strand atlas.strand --open` (or `--dir strands/ --open`) adds a switcher
 rail, and the header above the face says which agent, on which host, in which lane and session the page shows. Those are
 labels in a sidecar next to each strand (`nova.labels.json`), outside the strand and its digests: `probbit live ... --strand
