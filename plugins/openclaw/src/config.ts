@@ -10,8 +10,8 @@ export function bundledPersonaPath(): string {
 
 export type GateMode = "shadow" | "off";
 export type InjectTarget = "appendContext" | "appendSystemContext";
-/** auto: the host decision role when an agent decisionModel is configured, else keywords. jev: the Jev adapter. keyword: keywords only. */
-export type ClassifierMode = "auto" | "jev" | "keyword";
+/** auto: the host decision role when an agent decisionModel is configured, else keywords. keyword: keywords only. */
+export type ClassifierMode = "auto" | "keyword";
 /** off: no readings (default). shadow: compute them and log them to strands/<lane>.senses.jsonl, feed nothing. feed: send them. */
 export type SensesMode = "off" | "shadow" | "feed";
 /** question: the urgency question's answer only (default). heuristic: that answer, else the text heuristic. off: never. */
@@ -47,12 +47,6 @@ export type StanceConfig = {
   classifierTimeoutMs: number;
   decisionThreshold: number;
   classifier: ClassifierMode;
-  /** classifier "jev" only: log Jev's answers beside the keyword result but feed the engine the keyword flags. */
-  classifierShadow: boolean;
-  /** Pinned Jev model id. */
-  jevModel: string;
-  /** Env-style file holding OPENROUTER_API_KEY; read once at plugin start. */
-  jevKeyFile: string;
   destructive: DestructiveRule[];
   /** When non-empty, only turns whose ctx.senderId is listed produce events (group members other than the operator are skipped). */
   senderIds: string[];
@@ -180,12 +174,12 @@ export function resolveConfig(raw: unknown, home = homedir()): ResolvedConfig {
   } else if (src.destructive !== undefined) warnings.push("destructive: expected an array");
 
   let classifier: ClassifierMode = "auto";
-  if (src.classifier === "auto" || src.classifier === "jev" || src.classifier === "keyword") classifier = src.classifier;
-  else if (src.classifier !== undefined) warnings.push("classifier: expected auto, jev or keyword");
-  let classifierShadow = true;
-  if (typeof src.classifierShadow === "boolean") classifierShadow = src.classifierShadow;
-  else if (src.classifierShadow !== undefined) warnings.push("classifierShadow: expected a boolean");
-  const jevModel = str("jevModel", "typesafe/jev-1.13");
+  if (src.classifier === "auto" || src.classifier === "keyword") classifier = src.classifier;
+  else if (src.classifier === "jev") {
+    classifier = "keyword";
+    notices.push('classifier "jev" was removed; using keyword');
+  } else if (src.classifier !== undefined) warnings.push("classifier: expected auto or keyword");
+  if (src.classifierShadow !== undefined) notices.push("classifierShadow was removed; ignored");
 
   let senderIds: string[] = [];
   if (Array.isArray(src.senderIds) && src.senderIds.every((v) => typeof v === "string" && v.length > 0)) senderIds = src.senderIds as string[];
@@ -222,12 +216,9 @@ export function resolveConfig(raw: unknown, home = homedir()): ResolvedConfig {
       ...(footerPrefix !== undefined ? { footerPrefix } : {}),
       glyphInReply,
       inject,
-      classifierTimeoutMs: num("classifierTimeoutMs", classifier === "jev" ? 800 : 300, 50, 5_000),
+      classifierTimeoutMs: num("classifierTimeoutMs", 300, 50, 5_000),
       decisionThreshold: num("decisionThreshold", 0.6, 0, 1),
       classifier,
-      classifierShadow,
-      jevModel,
-      jevKeyFile: expandHome(str("jevKeyFile", "~/.openclaw/probbit-stance/openrouter.env"), home),
       destructive,
       senderIds,
       sensesMode,
@@ -295,19 +286,16 @@ export const CONFIG_JSON_SCHEMA = {
     decisionThreshold: { type: "number", minimum: 0, maximum: 1 },
     classifier: {
       type: "string",
-      enum: ["auto", "jev", "keyword"],
-      description:
-        "auto: host decision role when an agent decisionModel is configured, else keywords. jev: the Jev adapter (OpenRouter). keyword: keywords only.",
+      oneOf: [
+        { enum: ["auto", "keyword"] },
+        { const: "jev", deprecated: true, description: "Removed; loads with a warning and uses keywords only." },
+      ],
+      description: "auto: host decision role when an agent decisionModel is configured, else keywords. keyword: keywords only.",
     },
     classifierShadow: {
       type: "boolean",
-      description: "classifier jev only (default true): log Jev's answers, feed the engine the keyword flags.",
-    },
-    jevModel: { type: "string", minLength: 1, description: "Pinned Jev model id (default typesafe/jev-1.13)." },
-    jevKeyFile: {
-      type: "string",
-      minLength: 1,
-      description: "Env-style file with OPENROUTER_API_KEY (default ~/.openclaw/probbit-stance/openrouter.env); read once at start.",
+      deprecated: true,
+      description: "Removed; accepted as a no-op with a warning for old configurations.",
     },
     senderIds: { type: "array", items: { type: "string", minLength: 1 } },
     sensesMode: {
@@ -320,7 +308,7 @@ export const CONFIG_JSON_SCHEMA = {
       type: "string",
       enum: ["question", "heuristic", "off"],
       description:
-        "Default question: time_pressure only from the urgency question (live jev). heuristic: that answer, else the documented text heuristic (fed only with sensesMode feed). off: never.",
+        "Default question: time_pressure only from the urgency question (host decision model in auto mode). heuristic: that answer, else the documented text heuristic (fed only with sensesMode feed). off: never.",
     },
     agentName: {
       type: "string",

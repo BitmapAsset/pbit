@@ -22,7 +22,7 @@ Mood glyph: 🔒 (valence even 0.64, pressure keyed 0.58). Use at most one mood 
 Write from this stance. End the visible reply with one line: "Assistant 🔒 stance #14 · valence even · pressure keyed · security means careful, no play · in: +2 · moved: pressure, +1".
 ```
 
-That block is what `probbit-stance` 0.2.0 writes (the `Mood glyph:` line: see "The glyph" below). `probbit-stance`
+That block is what `probbit-stance` 0.3.0 writes (the `Mood glyph:` line: see "The glyph" below). `probbit-stance`
 0.1.0 wrote it without the `Mood glyph:` line and ended with `"Assistant stance #14 · valence even · pressure keyed ·
 security means careful, no play · in: correction, security · moved: pressure, caution"`.
 
@@ -31,7 +31,7 @@ which event this was, the two moods, a few words of the stance, the inputs the p
 and traits whose level changed since the previous event (`moved:`), 120 characters at most. People in the chat can see
 the state move; the strand proves it did.
 
-**The glyph** (`probbit-stance` 0.2.0 with probbit 0.13.0; `probbit-stance` 0.1.0 and probbit 0.12.1 have none). With a
+**The glyph** (`probbit-stance` 0.3.0 with probbit 0.13.0; `probbit-stance` 0.1.0 and probbit 0.12.1 have none). With a
 persona that has `display.glyphs` (the bundled one does; [docs/persona.md](../../docs/persona.md)
 §2.18), the engine computes one emoji from the stance: the glyph of a habit in force first, else the valence x pressure
 table, then 👀 when the expectation block reports a surprise. The footer opens with it (`Assistant 🙂 stance #14 · …`, or `◆🙂 stance
@@ -45,14 +45,22 @@ logs the glyph on every event line and `probbit live verify` recomputes it.
 
 ## How it decides what to feed the engine
 
-Each user message is read into the persona's flags: `praise`, `correction`, `failure`, `owner_upset`, `security`.
-Explicit markers win outright (`[praise] [correction] [failure] [upset] [security]` anywhere in the message); otherwise
-the agent's decision model answers four Boolean questions when one is configured (`agents.defaults.decisionModel`), or
-the Jev adapter does (`classifier: jev`, OpenRouter, shadow by default: logged beside the keyword result and not fed to the
-engine until you turn `classifierShadow` off); otherwise a conservative keyword list (a correction outranks a "thanks").
-The method lands in the log line of every event. Flags the persona does not declare are dropped with one warning each;
-`time_pressure` is fed when the classifier scores it (the urgency question, asked by the Jev adapter in live mode). With
-`sensesMode` set (since 0.2.0), the plugin also measures readings of its own (next section).
+Each user message is read into the persona's flags: `praise`, `correction`, `failure`, `owner_upset`, `security`,
+`win` and `wants_energy`. Explicit markers win outright (`[praise] [correction] [failure] [upset] [security] [win] [energy]`).
+With `classifier: auto`, the host's own decision model answers six Boolean questions and an urgency question when an agent
+has `decisionModel` configured (per-agent setting, otherwise `agents.defaults.decisionModel`). If it is unavailable or
+fails, a conservative keyword list classifies the message (a correction outranks a "thanks"). `classifier: keyword`
+always uses markers or keywords. The plugin has no separate model provider or API-key configuration.
+The method lands in the log line of every event. Flags the persona does not declare are dropped with one warning each.
+
+`time_pressure` comes from the host decision model's urgency answer: its expected index over five levels divided by four,
+rounded to two decimals. It is fed only when the persona declares it and the value is at least 0.05. Without a usable
+answer (including keyword-only turns), the default `timePressureSource: question` feeds no time pressure. To use the
+text heuristic as a fallback, set both `timePressureSource: heuristic` and `sensesMode: feed`; `timePressureSource: off`
+disables both sources. With `sensesMode` set, the plugin also measures readings of its own (next section).
+
+`classifierShadow` is accepted only for migration: it does nothing and warns once at plugin load. Remove it from your
+configuration. It is unrelated to the destructive-action gate and `sensesMode: shadow`, which still work.
 
 ## Senses: tempo, tool failures and time pressure (`sensesMode`)
 
@@ -117,8 +125,8 @@ and corrections, within a cap that keeps the individual itself.
 ## Install
 
 Requirements: OpenClaw 2026.9.7 or later, probbit 0.13.0 or later on the gateway's PATH (`npm i -g probbit`, or
-[one curl line](https://github.com/BitmapAsset/probbit#install)), Node 22+. `probbit-stance` 0.2.0 checks the binary's
-version at load: an older probbit gets one warning naming both versions (`probbit-stance 0.2.0 needs probbit 0.13.0 or
+[one curl line](https://github.com/BitmapAsset/probbit#install)), Node 22+. `probbit-stance` 0.3.0 checks the binary's
+version at load: an older probbit gets one warning naming both versions (`probbit-stance 0.3.0 needs probbit 0.13.0 or
 later; probbit is probbit 0.12.1: ...`), each lane's first turn logs one more (`lane <lane>: no stance this turn (...)`,
 the same reason), and no event runs until it is upgraded. With probbit 0.12.x keep
 `probbit-stance` 0.1.0.
@@ -193,12 +201,9 @@ rules before you ship it), and set `personaPath`. Keep the input ids the plugin 
 | `footerPrefix` | the persona's name | opens the footer line (an emoji or a short handle works; 24 characters at most) |
 | `glyphInReply` | `true` | since 0.2.0; with a persona that has `display.glyphs`: the block's `Mood glyph:` line (the footer shows the glyph either way) |
 | `inject` | `appendContext` | `appendSystemContext` puts the block in the system prompt instead (changes the cached prefix every turn) |
-| `classifier` | `auto` | `auto`: the agent's decision model when configured, else keywords; `jev`: the Jev adapter; `keyword` |
-| `classifierShadow` | `true` | with `jev`: log Jev's answers, feed the engine the keyword flags |
-| `classifierTimeoutMs` | `300` (`800` with jev) | classifier budget per turn |
+| `classifier` | `auto` | `auto`: the agent's decision model when configured, else keywords; `keyword`: markers and keywords only |
+| `classifierTimeoutMs` | `300` | classifier budget per turn |
 | `decisionThreshold` | `0.6` | accept a Boolean answer at p ≥ this |
-| `jevModel` | `typesafe/jev-1.13` | pinned Jev model id |
-| `jevKeyFile` | `~/.openclaw/probbit-stance/openrouter.env` | env-style file with `OPENROUTER_API_KEY`; read once at start, never logged |
 | `senderIds` | `[]` | when set, only these sender ids produce events (other group members are skipped) |
 | `sensesMode` | `off` | since 0.2.0: `shadow` measures tempo, tool_fail and the heuristic time_pressure and logs them to `strands/<lane>.senses.jsonl`; `feed` also sends the ones the persona declares ([Senses](#senses-tempo-tool-failures-and-time-pressure-sensesmode)) |
 | `timePressureSource` | `question` | since 0.2.0: `question` (the urgency question only), `heuristic` (the question, else the text heuristic; fed with `sensesMode` feed), `off` |
@@ -244,7 +249,7 @@ left as is with one warning per lane.
   (in the probbit repo) renders one record per decision ([docs/receipts.md](../../docs/receipts.md)).
 - `strands/<lane>.labels.json` (since 0.2.0): the lane's labels for `probbit monitor` (above).
 - `log/<lane>.jsonl`: `iso \t event \t stance-document \t meta`, where meta holds the event number, the idempotency key,
-  the classification method and flags, the text source, the milliseconds, and (with jev) the classifier's answers.
+  the classification method and flags, the text source, the milliseconds, the host decision probabilities and any fallback reason.
 - `last/<lane>.ts`: the epoch of the previous event, for the hours the engine decays moods over.
 - `strands/<lane>.senses.jsonl` (`sensesMode` shadow or feed; since 0.2.0): one line per event with the
   readings the plugin measured, the source of each and what it fed.

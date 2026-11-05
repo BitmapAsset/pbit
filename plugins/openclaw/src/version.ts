@@ -1,7 +1,7 @@
 import { runBinary } from "./probbit.js";
 
 /** This plugin's version (package.json's; a unit test keeps the two equal). */
-export const PLUGIN_VERSION = "0.2.0";
+export const PLUGIN_VERSION = "0.3.0";
 /**
  * The oldest probbit this plugin runs: 0.13.0 is the first release whose engine reads the bundled persona's `display`
  * block (the glyph) and takes `live --label`; older binaries refuse that persona or write strands the monitor cannot label.
