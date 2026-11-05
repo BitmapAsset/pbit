@@ -144,8 +144,11 @@ fn flags_and_conditional_habits_explain_the_held_level() {
 
 #[test]
 fn checkpoint_is_not_an_event_and_crlf_is_accepted() {
-    let original =
-        std::fs::read_to_string(fixture("strands/sensed-credit-0.9.0-dev.strand")).unwrap();
+    // Normalise to LF first: a checkout with `core.autocrlf=true` (GitHub's Windows runners)
+    // already has CRLF on disk, and converting twice gives CR CR LF, which is rightly rejected.
+    let original = std::fs::read_to_string(fixture("strands/sensed-credit-0.9.0-dev.strand"))
+        .unwrap()
+        .replace("\r\n", "\n");
     let copy = Copy::new(&original.replace('\n', "\r\n"));
     let o = explain(&copy.0, "5", true);
     assert_eq!(o.status.code(), Some(0), "{:?}", o);
