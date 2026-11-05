@@ -19,6 +19,13 @@ trait and mood as `name level`, then the viability line); `--actions FILE` reads
 `{"turn": T, "action": {trait: level}}` per line, and names the earliest turn whose action differs from the level its stance
 released.
 
+## Explain one event (unreleased)
+
+`probbit explain run.strand --event 2` reports the inputs and flags, before/after stance with odds, binding habits,
+chain link and `recomputes` or `differs`. Add `--json` for the same data in a document. It checks the prefix through that
+1-based event only; `probbit live verify` checks the whole strand. The [CLI guide](CHEATSHEET.md#probbit-explain-strand---event-n-unreleased)
+covers the first event, elapsed time, segments and exit codes.
+
 ## Rendering the receipts
 
 ```sh

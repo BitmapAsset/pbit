@@ -131,6 +131,7 @@ The exact tiers run before the sampler:
 - `check`: 0 every rule held and every strand replays; 1 a rule broken, an unresolved contradiction, a strand that fails or one
   this engine cannot verify (unsupported) (1 wins); 2 a bad persona, rule file or flag; 3 the only problem is an unproven rule.
 - `monitor`: 0 every line replays; 1 a line differs; 2 a bad flag, a port that cannot be had, or a file that is not a strand.
+- `explain` (unreleased): 0 the event recomputes; 1 a line differs in its prefix; 2 bad flags, missing file, out-of-range event or malformed JSON/event envelope; 5 unsupported field or line kind.
 
 ## Errors
 One channel, the same for every command (0.8.2):
@@ -165,8 +166,39 @@ One channel, the same for every command (0.8.2):
 | `live PERSONA [--seed N \| --state FILE] [--strand FILE] [--events FILE]` | JSONL events in, one stance per event out |
 | `live PERSONA --demo week [--seed N] [--plain]` | a scripted week: learning to a cap, a night, rules that hold |
 | `live verify STRAND [--actions FILE]` | replay a strand; the earliest line that differs (and host action, with `--actions`), or the earliest line this engine cannot read: `unsupported by this engine: FIELD`, exit 5 |
+| `explain STRAND --event N [--json]` (unreleased) | one event in words: logged inputs, before/after stance and odds, binding habits, chain, recomputation result |
 | `monitor STRAND [--follow] [--once] [--plain] [--serve] [--open] [--port N]` | the strand replayed as live bars in the terminal, or the Activity Monitor page on 127.0.0.1 (channel table, event-history traces, inspector) |
 | `monitor --demo [week\|drives] [--open]` | synthetic data: the tutor's week, paced, in under a minute; `drives`: a short goal-signal scenario |
+
+## `probbit explain STRAND --event N` (unreleased)
+
+```sh
+probbit explain run.strand --event 2
+probbit explain run.strand --event 2 --json
+```
+
+`N` is the strand's **1-based event number** (`n`), not the JSONL file line or the persona's 0-based `turn`.
+Replay starts at the header and checks every intervening control, checkpoint, rest, reflection and consolidation line
+through that event. The report shows the logged event, inputs and boolean flags (including flag senses), elapsed hours,
+previous and recomputed trait/mood levels and odds, active habits and binding habits with their constraints and held
+levels, the previous hash → this line's hash, and `recomputes` or `differs`. Odds are the engine's distributions,
+not probabilities that a model will obey. `after.status` still matters: a recomputable refusal or fallback is not approval.
+
+The first event's `before` comes from the initial state's resting levels, with `odds: null`: no previous turn has been
+solved. Event lines log `inputs.elapsed_hours`, not an absolute wall timestamp (`time.wall_time: null`).
+A checkpoint supplies the preceding stance when a sealed segment is opened. Segment reports name the `trusted_link`;
+they do not verify earlier segment files. Later lines are not checked. Use `probbit live verify STRAND` for a whole
+strand, or `probbit live verify STRAND --chain` for its linked segments.
+
+With `--json`, `event` is the logged line object; `before` and `after` hold the stance documents, `bound_habits` resolves
+`after.habits.bound` to the persona's definitions and held levels, `chain` contains `previous`, `expected_previous` and
+`this`, and `verification` records scope, engine, any failed line and reason. `after_source` is always `recomputed`:
+a tampered stance digest cannot tell us what the original stance was. If the prefix fails or the engine cannot recompute
+the selected event, the existing verification failure object names the line instead of inventing a before/after report.
+Malformed input returns the usual `error` object. The command reads the file once and never writes it.
+
+Habits bind the stance. The receipt establishes what the engine asked for, not what the model said or did.
+See [SOUL.md to habits](soul-to-habits.md) and [Receipts](receipts.md).
 
 ## `probbit check PERSONA` (0.9.0): one gate for CI
 `probbit check PERSONA [--props FILE] [--strand FILE]... [--seeds 0-99] [--depth 8] [--hours 1,12,48] [--json]` runs `persona

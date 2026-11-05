@@ -13,6 +13,8 @@ Install on Linux or macOS: `curl -fsSL https://raw.githubusercontent.com/BitmapA
 
 ## Agents and personas
 
+- [From SOUL.md to habits](https://raw.githubusercontent.com/BitmapAsset/probbit/main/docs/soul-to-habits.md): map rules-file lines to stance habits; bench-assistant worked example and model/action limits
+
 - [Persona format](https://raw.githubusercontent.com/BitmapAsset/probbit/main/docs/persona.md): the persona file (traits, moods, habits), the stance and state documents, bounded learning, `probbit live`, `probbit monitor`, what a persona can not do
 - [Calling probbit from agents](https://raw.githubusercontent.com/BitmapAsset/probbit/main/docs/agents.md): shell, Python, Node, PowerShell, the MCP server and its tools, a browser
 - [Agent SDK adapters](https://raw.githubusercontent.com/BitmapAsset/probbit/main/docs/adapters.md): a live individual beside Claude Code hooks, the OpenAI Agents SDK, LangChain and the Vercel AI SDK

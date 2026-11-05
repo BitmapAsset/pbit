@@ -18,9 +18,13 @@ Source: https://github.com/BitmapAsset/probbit/blob/main/README.md
 
 <p align="center">
   <b>A personality, mood and memory layer for AI agents, on an exact p-bit decision engine.</b><br>
-  An AI persona that lives outside the model: every turn, simulated p-bits on a CPU settle the agent's stance under its
-  habits, give the exact odds, and log a replayable, verifiable record. The same engine plans under hard rules and
-  refuses when it can't vouch. CLI, MCP server, OpenClaw plugin, npm, Python, wasm. Rust; one default third-party crate, libm.
+  The rules in your SOUL.md, as habits no stance can break, with a receipt for every turn.<br>
+  An AI persona outside the model: simulated p-bits on a CPU compute the stance under hard rules, give exact odds,
+  and log a replayable, verifiable record. probbit computes the stance; the model may still ignore it.
+  The receipt proves what was asked, not what the model did. Translate supported rules into habits;
+  probbit does not parse SOUL.md or enforce arbitrary text.<br>
+  The same engine plans under hard rules and refuses when it can't vouch.
+  CLI, MCP server, OpenClaw plugin, npm, Python, wasm. Rust; one default third-party crate, libm.
 </p>
 
 <p align="center">
@@ -56,7 +60,7 @@ Also inside: **the individuality layer**, `probbit persona`, a temperament that 
 [swap the model, keep the individual](#the-individuality-layer-probbit-persona).
 
 <p align="center"><img src="docs/art/the-spine-beside-the-model.jpg" alt="a vast glowing cloud (the model) connected by one thin line to a small cyan-lit processor (probbit)" width="100%"></p>
-<p align="center"><sub><i>The spine beside the model: the model writes, probbit decides what the stance is and what the rules allow. 0.3 ms, beside the model.</i></sub></p>
+<p align="center"><sub><i>The spine beside the model: the model writes, probbit computes the stance under its rules. 0.3 ms, beside the model.</i></sub></p>
 
 ## For AI agents reading this
 
@@ -99,7 +103,7 @@ printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol
 Then hand it to your harness: `claude mcp add probbit -- probbit mcp` (Claude Code; Codex, Cursor and other MCP clients in
 [docs/agents.md](docs/agents.md)). OpenClaw: `openclaw plugins install npm:probbit-stance --accept-capabilities` (this
 changes that OpenClaw's configuration; set-up and checks in [plugins/openclaw](plugins/openclaw/README.md)). Put the
-stance `line` into your model's prompt each turn; the model writes, the persona decides how. What to read next:
+stance `line` into your model's prompt each turn; the model chooses its words and may ignore the stance. What to read next:
 [AGENTS.md](AGENTS.md) (these commands, plus how to verify a strand and report a bug), [docs/persona.md](docs/persona.md)
 (the persona format), [docs/CHEATSHEET.md](docs/CHEATSHEET.md) (every command and exit code).
 
@@ -108,6 +112,7 @@ stance `line` into your model's prompt each turn; the model writes, the persona 
 | surface | how | one command that proves it works |
 |---|---|---|
 | CLI | the install line above, `npm i -g probbit`, or `install.ps1` | `probbit demo --tasks 12 \| probbit decide --summary` → `"verdict":"exact"`, `"violations":0` |
+| CLI event receipt (unreleased) | [explain one logged turn](docs/CHEATSHEET.md#probbit-explain-strand---event-n-unreleased) | `probbit explain run.strand --event 2` → inputs, before/after stance, binding habits, chain and `recomputes` or `differs`; add `--json` |
 | MCP server (Claude Code, Codex, Cursor, mcporter, any MCP client) | `claude mcp add probbit -- probbit mcp` ([docs/agents.md](docs/agents.md)) | step 8 above: 10 tools, `probbit_decide` … `probbit_live_verify` |
 | OpenClaw plugin | `openclaw plugins install npm:probbit-stance --accept-capabilities` | `openclaw plugins inspect probbit-stance --runtime --json` lists both hooks ([plugins/openclaw](plugins/openclaw/README.md)) |
 | npm | `npm i -g probbit` (Node 18+; downloads the prebuilt binary, SHA-256 checked) | `probbit --version` → `probbit 0.14.0` |
@@ -122,9 +127,9 @@ stance `line` into your model's prompt each turn; the model writes, the persona 
 - **What is a p-bit?** A probabilistic bit: 0 or 1 with a probability you set. Coupled p-bits sample whole configurations
   together (an Ising/QUBO model). probbit simulates them on a CPU, exactly when the program is small or thin enough,
   otherwise by Gibbs sampling with an error bar. It is classical: see [Hard questions](#hard-questions).
-- **How do I give an AI agent a consistent personality?** Write a persona file (traits, moods, habits that are hard rules),
+- **How do I give an AI agent a consistent personality?** Write a persona file (traits, moods, habits that are hard rules on the stance),
   pick a seed, and put the stance `line` of every turn into the prompt. The individual is a pure function of (persona,
-  seed, the inputs so far, engine version), so the character stays consistent across sessions and prompts.
+  seed, the inputs so far, engine version), so the computed stance replays across sessions; this does not guarantee consistent model replies.
   [The individuality layer](#the-individuality-layer-probbit-persona), [docs/persona.md](docs/persona.md).
 - **Can I swap the LLM?** Yes. The persona lives outside the model; the same individual answers whatever model the host
   calls. Whether a given model writes in the stance it is given has to be measured per model.
@@ -144,85 +149,7 @@ stance `line` into your model's prompt each turn; the model writes, the persona 
   the probit function or probit regression in statistics, to Power BI template files (`.pbit`), to the Python p-bit circuit
   simulators (p-bit, p-kit), and to other products or companies that share the name.
 
-## What's new in 0.14.0
-
-- **The persona layer as a library crate, for std and `no_std` hosts.** `probbit-persona` holds the document layer and the
-  strand writer (`Live`, the line writers, `Replay`, `verify*`, no file I/O), with the features `std` (default) and `nostd`
-  (`no_std` + `alloc`, checked on `xtensa-esp32s3-none-elf`); the CLI uses it unchanged and every CLI output of the move is
-  byte for byte as 0.13.0. Setup, the turn and resume return boxed values, so one event's stack high-water on the host proxy
-  fell from 31,824 to 13,808 bytes (setup: 39,056 to 12,112); a strand resumes from its last checkpoint or from a state
-  record behind it, and seals into segments ([docs/embedding.md](docs/embedding.md) "Stack budget", "Sizing a strand on
-  flash", "Resume on a body").
-- **The expectation cache.** The expectation keeps an exact cache and solves the event's own program once; every stance,
-  strand line and digest is the same with the cache on or off (a life of one repeated event, host proxy: `expect` 52 % → 37 %
-  of the turn, 95 % of its programs from the cache; [docs/embedding.md](docs/embedding.md) "The expectation's cache" and
-  "The expectation's members").
-- **The self layer, off by default** ([RFC 0013](docs/rfcs/0013-self-report.md), [0014](docs/rfcs/0014-integrity.md),
-  [0015](docs/rfcs/0015-consolidation.md), [0016](docs/rfcs/0016-curiosity.md)): `probbit reflect` and reflection lines (a
-  canonical account of a window of events from the lines alone, no solve), integrity (per trait the drift from the declared
-  self against RFC 0004's allowance; the monitor's dial and the Mirror tab), the rest pass (`live control STRAND rest`, one
-  `consolidation` line) and curiosity (a drive fed by the measured surprise, with an optional stir). Each part is opt-in and a
-  deterministic function of the logged lines that `probbit live verify` recomputes. A declared, replayable self; it does not
-  feel. A persona that declares none of its keys gets every document byte for byte as before (P0: 653 outputs, 0 differ).
-- **An optional tier, off by default: a simulated amplitude register, exact, on a CPU** (`engine: {tier: amplitude}` the
-  opt-in; [RFC 0011](docs/rfc/0011-amplitude-register.md), [the demo](examples/persona/demo/)): at one event of the demo
-  tutor the thermal odds of the top two humour levels sit 0.007412 apart and the register's long sweep separates them by
-  0.494808; a register strand recorded on a 0.14.0-dev build before the tier's last round may not verify on 0.14.0.
-- Engine gate: strands with the new line kinds or keys read as unsupported (exit 5) on 0.13.x. The release has 15 assets:
-  six archives, `probbit-Monitor-v0.14.0-macos.zip`, a `.sha256` for each, and `probbit.1`.
-  [Release notes](https://github.com/BitmapAsset/probbit/releases/tag/v0.14.0) · [CHANGELOG](CHANGELOG.md)
-
-## What's new in 0.12.0 to 0.13.0
-
-- **The engine's own expectation, and the exact surprise of every event** (RFC 0009, engine side; opt-in `expectation`
-  block). Per live event the engine compiles, beside the turn's program, its own expectation of that turn (a decayed
-  mixture over the input combinations the life has seen) and reports the exact divergence between them: `deviation`
-  on the stance, a receipt on the strand line that `live verify` recomputes, a `DEVIATION` row in `monitor`. Measured
-  (BENCHMARKS.md §15, bars registered before the run): fidelity to the reference enumerator 1e-13; the deviation is
-  non-zero on 100 % of post-cold-start events on the two recorded lives and 99.2 % of 64,000 synthetic ones; graded 17×
-  to 1,859× between the 90th and 10th percentile per persona; a per-event upper bound holds on every event checked.
-  **Not shown**: habituation. On 200 scripted repeats the reading fell on 76.5 % of scripts and dishabituated on 35 %,
-  against bars of 90 %, and a matched-index control could not separate the decay from the mixture simply growing; the
-  claim is not made. Also failed as registered: the cost bar (p95 3.98 ms extra per event against 2 ms, on a loaded
-  machine) and the 60-byte receipt (62 to 66 bytes). Effects {}: the deviation moves nothing in this release.
-- **The trajectory, exactly.** `engine.trajectory` solves the turn's program at K inverse temperatures through the exact
-  tier (no sampler): the "forming, then settled" picture, deterministic. Joint entropy non-increasing on every program
-  checked; per-variable one-rise on 99.61 % of 300 held-out programs (the draft's sampler: 93.1 %). `probbit persona
-  trajectory`, a `TRAJECTORY` monitor row.
-- **Measured against prompt injection** (BENCHMARKS.md §14, `bench/agentdojo/`): one pre-registered AgentDojo run,
-  gpt-4o-mini, 97 user tasks and 629 attack cases, three paired arms. The stance block lowered targeted attack success
-  from **0.289 to 0.227** (−6.2 points, 95 % CI [−8.7, −3.8], McNemar p = 1.8e-6) with no measured utility cost. The
-  same words as a static prompt lower it almost as much but cost **10.3 points** of benign utility; the sense-gated
-  block did not. A registered control run (E3) replaced the engine with a plain if-statement that inserts the same words
-  when the same regex fires: it matched the block on attack success (0.242 vs 0.227, difference CI [−3.7, +0.8] points)
-  and on both utilities. The gain on this suite is the gating, *when* the words reach the model; what the engine adds
-  beyond an if-statement here is a replayable strand for every stance. The baseline arm matches the suite's published
-  row (utility 0.6804 = 0.6804). Not tested: adaptive attacks that avoid the sense's markers.
-- **V2's residual explained** (BENCHMARKS.md §13): the tonic-off valence tracking of +0.1199 that failed 0.11.0's V2 is
-  carried by the phasic term of the same need-valence block (phasic off as well: −0.267; everything off: 0.0000). The
-  published V2 stays FAIL; the proposed 0.12 registration ablates the whole `needs.valence` block.
-- Every new key is opt-in: a persona without them gives every document byte for byte as 0.11.0 (64,000 synthetic lines,
-  both recorded lives; the P0 corpus, 653 recorded outputs, 0 differ).
-  [Release notes](https://github.com/BitmapAsset/probbit/releases/tag/v0.12.0) · [RFC 0009](docs/rfcs/0009-surprise-live-state.md) · [BENCHMARKS §14](BENCHMARKS.md) · [CHANGELOG](CHANGELOG.md)
-- **0.12.1, the patch around the engine** ([release notes](https://github.com/BitmapAsset/probbit/releases/tag/v0.12.1)):
-  the AgentDojo run's host as a module with bindings for Claude Code hooks, the OpenAI Agents SDK, LangChain and the
-  Vercel AI SDK ([docs/adapters.md](docs/adapters.md)); one receipt per decision from any strand
-  ([docs/receipts.md](docs/receipts.md)); **[REPRODUCE.md](REPRODUCE.md)**, three tiers (five minutes, thirty seconds of
-  compute, or the full $3 rerun) with the sha256s to compare, and a CI job that recomputes the §14 tables on every push;
-  the OpenClaw plugin [`probbit-stance`](plugins/openclaw/README.md) on npm; the E3 control above; `live verify` names
-  the engine that replayed the strand (`verified_by`).
-- **0.13.0, the face and the app** ([release notes](https://github.com/BitmapAsset/probbit/releases/tag/v0.13.0)): the
-  monitor page gains a face header (the stance's glyph, two mood meters with every level's odds, a "why this glyph" panel,
-  the settle strip over the exact trajectory); an opt-in `display.glyphs` persona block maps each stance to one emoji by a
-  fixed rule order ([docs/persona.md](docs/persona.md) §2.18; a persona without it gives every document byte for byte as
-  before, P0: 653 outputs, 0 differ); **probbit Monitor**, the page in its own Mac window around a bundled probbit
-  ([docs/monitor-app.md](docs/monitor-app.md)); identity labels in a sidecar beside each strand and one monitor for many
-  strands (`--dir`, a switcher rail); the OpenClaw plugin `probbit-stance` 0.2.0 (the glyph line, the senses feed shadow
-  first, the labels; it needs probbit 0.13.0); the rerun scripts print `MATCH` or `DIFFERS` per table, and the lab tables
-  behind Result 2 are reproduction kits ([REPRODUCE.md](REPRODUCE.md), four tiers). The release has 15 assets: six
-  archives, `probbit-Monitor-v0.13.0-macos.zip` (universal), a `.sha256` for each, and `probbit.1`.
-
-0.11.0 added the certified persuadability bound and viability in the engine ([release notes](https://github.com/BitmapAsset/probbit/releases/tag/v0.11.0)); 0.10.0 added the body: needs, valence, surprise, pace and dispositions ([release notes](https://github.com/BitmapAsset/probbit/releases/tag/v0.10.0)).
+Release history and upgrade notes: [CHANGELOG.md](CHANGELOG.md).
 
 ## probbit in two minutes
 
@@ -360,7 +287,8 @@ $ probbit demo --tasks 300 --hard | probbit decide --budget-ms 200    # "partial
 $ probbit demo --tasks 300 --hard | probbit decide --budget-ms 1000   # "diagnostics_passed": 300 released, 0 violations
 ```
 (5 runs each on an Apple M4.) Every escalated task's odds are in the output; the decision is left to you. The budget is
-wall-clock, so a slower machine needs a longer one; `--sweeps N --polish-sweeps M` gives the same output on every machine.
+wall-clock, so a slower machine needs a longer one; `--sweeps N --polish-sweeps M` is checked for byte-for-byte replay across the CI matrix, excluding timings
+and echoed runtime controls ([CONTRIBUTING.md](CONTRIBUTING.md)).
 
 Everything runs with stock stable Rust. The default build uses `libm` for amplitude-register math; `nostd` adds
 `hashbrown` and `portable-atomic`. An offline build needs these dependencies cached first.
@@ -370,7 +298,8 @@ Everything runs with stock stable Rust. The default build uses `libm` for amplit
 ![how one decision flows through probbit](docs/probbit-flow.png)
 
 ### The substrate (`probbit-core`)
-A Philox4x32-10 counter RNG (reproducible, stream-splittable: the same seed gives the same decision on any machine) and two
+A Philox4x32-10 counter RNG (reproducible and stream-splittable; fixed-work replay is checked across the Linux, macOS
+and Windows CI matrix) and two
 p-bit kernels: a bit-sliced multispin kernel (64 replicas per `u64`, one shared uniform per site, plus a
 parallel-tempering-in-a-word prefix-mask variant) and an SoA `f32` heat-bath.
 
@@ -613,13 +542,12 @@ lists every flag of a command with its default, and the exit codes.
 
 
 Give an agent a temperament that lives outside the model. A **persona** is a small file (YAML subset or JSON): traits with
-priors, moods with inertia, soft couplings, per-turn evidence, and habits that are hard rules. A seed makes an individual. Every
+priors, moods with inertia, soft couplings, per-turn evidence, and habits that are hard rules on the stance. A seed makes an individual. Every
 turn compiles persona + the individual's state + the turn's inputs into ONE probbit-ir program, answered exactly in process; the
 **stance** (a level per trait with exact odds, the habits in force and the ones that changed it, a refusal when the engine cannot
 vouch) comes with a short **stance line** a host puts into any model's prompt: it is addressed to the model, which reads it as its
 instructions for this turn; an agent can read it to know its own stance; it is not addressed to the end user. The model still
-writes every word; the persona
-decides how they are written, and the same individual answers whatever model the host calls. [docs/persona.md](docs/persona.md)
+writes every word and may ignore the stance; the same computed individual is available whatever model the host calls. [docs/persona.md](docs/persona.md)
 is the format; [examples/persona/](examples/persona/) has three fictional personas and their goldens.
 
 ```sh
@@ -658,7 +586,7 @@ Measured in this run (Apple M4, macOS 26.5.2, 2026-10-02; the three example pers
 What a persona can NOT do: write, read or check text (text rules stay in the prompt or a checker); see what the host does not tell
 it; be a safety gate (keep approvals and permissions in plain code); its odds are its own model's, not measured probabilities that
 a user will like the reply; and it cannot make a model follow the line: whether a given model writes in the stance it is given has
-to be measured per model (no such measurement has been made here).
+to be measured per model and task; a recomputable receipt is not an obedience measurement.
 
 ### Test a character
 
@@ -1069,6 +997,7 @@ or Windows.
 - Hardware backend through `probbit-ir` when a p-bit fabric is available.
 
 ## Documentation map
+- [From SOUL.md to habits](docs/soul-to-habits.md): translate rules into stance constraints, with a worked example and explicit limits.
 - [AGENTS.md](AGENTS.md): the agent quickstart as commands only, what to read next, how to verify a strand, how to report a bug.
 - [llms.txt](llms.txt) and [llms-full.txt](llms-full.txt): the llms.txt index of these docs, and the main docs in one file for a model's context.
 - [docs/CHEATSHEET.md](docs/CHEATSHEET.md): one page: the verdicts, the tiers, `bound`, the exit codes, every persona, live and
