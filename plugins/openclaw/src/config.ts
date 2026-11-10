@@ -180,6 +180,9 @@ export function resolveConfig(raw: unknown, home = homedir()): ResolvedConfig {
     notices.push('classifier "jev" was removed; using keyword');
   } else if (src.classifier !== undefined) warnings.push("classifier: expected auto or keyword");
   if (src.classifierShadow !== undefined) notices.push("classifierShadow was removed; ignored");
+  // The removed adapter's options stay declared: the host rejects unknown keys before the plugin loads.
+  if (src.jevModel !== undefined) notices.push("jevModel was removed; ignored");
+  if (src.jevKeyFile !== undefined) notices.push("jevKeyFile was removed; ignored");
 
   let senderIds: string[] = [];
   if (Array.isArray(src.senderIds) && src.senderIds.every((v) => typeof v === "string" && v.length > 0)) senderIds = src.senderIds as string[];
@@ -296,6 +299,16 @@ export const CONFIG_JSON_SCHEMA = {
       type: "boolean",
       deprecated: true,
       description: "Removed; accepted as a no-op with a warning for old configurations.",
+    },
+    jevModel: {
+      type: "string",
+      deprecated: true,
+      description: "Removed; accepted as a no-op with a warning for old configurations.",
+    },
+    jevKeyFile: {
+      type: "string",
+      deprecated: true,
+      description: "Removed; accepted as a no-op with a warning for old configurations. The file is never read.",
     },
     senderIds: { type: "array", items: { type: "string", minLength: 1 } },
     sensesMode: {

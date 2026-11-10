@@ -97,6 +97,16 @@
         "deprecated": true,
         "description": "Removed; accepted as a no-op with a warning for old configurations."
       },
+      "jevModel": {
+        "type": "string",
+        "deprecated": true,
+        "description": "Removed; accepted as a no-op with a warning for old configurations."
+      },
+      "jevKeyFile": {
+        "type": "string",
+        "deprecated": true,
+        "description": "Removed; accepted as a no-op with a warning for old configurations. The file is never read."
+      },
       "senderIds": {
         "type": "array",
         "items": {

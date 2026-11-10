@@ -16,9 +16,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Removed
 
-- OpenClaw plugin 0.3.0: remove the Jev adapter, its OpenRouter key loading, `jevModel`, `jevKeyFile`, named-classifier
-  log fields and special timeout default. Legacy `classifier: "jev"` loads with a warning and uses keywords only.
-  `classifierShadow` is a deprecated no-op with a load-time warning; it no longer runs a shadow classifier.
+- OpenClaw plugin 0.3.0: remove the Jev adapter, its OpenRouter key loading, named-classifier log fields and special
+  timeout default. Legacy `classifier: "jev"` loads with a warning and uses keywords only. `classifierShadow`,
+  `jevModel` and `jevKeyFile` are deprecated no-ops with a load-time warning each, so an old configuration still passes
+  the host's schema check; no shadow classifier runs and the key file is never read.
 
 ### Changed
 

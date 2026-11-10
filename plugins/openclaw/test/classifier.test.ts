@@ -4,7 +4,7 @@ import { footerLine, FOOTER_MAX, movedNames } from "../src/block.js";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import plugin, { registerStance } from "../src/index.js";
-import { resolveConfig } from "../src/config.js";
+import { CONFIG_JSON_SCHEMA, resolveConfig } from "../src/config.js";
 import { cliEvent, createHost, GROUP_KEY, groupCtx, PROBBIT, tempStateDir } from "./host.js";
 import { timePressureFrom } from "../src/classify.js";
 
@@ -88,6 +88,29 @@ test("config: classifierShadow is a nonfatal no-op for either boolean value", ()
   }
 });
 
+test("config: the removed adapter's options stay declared and load as nonfatal no-ops", () => {
+  const raw = { classifier: "jev", jevModel: "old-model-id", jevKeyFile: "~/.openclaw/probbit-stance/old.env" };
+  assert.equal(plugin.configSchema.safeParse(raw).success, true);
+  const { config, warnings, notices } = resolveConfig(raw);
+  assert.equal(config.classifier, "keyword");
+  assert.equal("jevModel" in config, false);
+  assert.equal("jevKeyFile" in config, false);
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(notices, [
+    'classifier "jev" was removed; using keyword',
+    "jevModel was removed; ignored",
+    "jevKeyFile was removed; ignored",
+  ]);
+  // The host checks the manifest copy of this schema before the plugin loads and rejects unknown keys, so a removed
+  // option has to stay declared or an old configuration stops validating.
+  assert.equal(CONFIG_JSON_SCHEMA.additionalProperties, false);
+  for (const key of ["classifierShadow", "jevModel", "jevKeyFile"] as const) {
+    assert.equal(CONFIG_JSON_SCHEMA.properties[key].deprecated, true, key);
+  }
+  assert.equal(CONFIG_JSON_SCHEMA.properties.jevModel.type, "string");
+  assert.equal(CONFIG_JSON_SCHEMA.properties.jevKeyFile.type, "string");
+});
+
 function logs(dir: string): Array<{ event: Record<string, unknown>; meta: Record<string, unknown> }> {
   return readFileSync(join(dir, "log", "team-room.jsonl"), "utf8").trim().split("\n").map((line) => {
     const cols = line.split("\t");
@@ -100,7 +123,15 @@ test("hook: removed classifier warns once across turns and never calls fetch or 
   let modelCalls = 0;
   const dir = tempStateDir();
   const host = createHost(
-    { lanes: { [GROUP_KEY]: "team-room" }, stateDir: dir, binary: PROBBIT, classifier: "jev", classifierShadow: true },
+    {
+      lanes: { [GROUP_KEY]: "team-room" },
+      stateDir: dir,
+      binary: PROBBIT,
+      classifier: "jev",
+      classifierShadow: true,
+      jevModel: "old-model-id",
+      jevKeyFile: join(dir, "missing.env"),
+    },
     {
       config: { agents: { defaults: { decisionModel: "example-judge" } } },
       runtime: { decisions: { evaluate: async () => { modelCalls++; throw new Error("unexpected host model call"); } } },
@@ -123,6 +154,8 @@ test("hook: removed classifier warns once across turns and never calls fetch or 
   assert.deepEqual(warnings, [
     '[probbit-stance] config: classifier "jev" was removed; using keyword',
     '[probbit-stance] config: classifierShadow was removed; ignored',
+    '[probbit-stance] config: jevModel was removed; ignored',
+    '[probbit-stance] config: jevKeyFile was removed; ignored',
   ]);
 });
 

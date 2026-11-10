@@ -59,8 +59,9 @@ answer (including keyword-only turns), the default `timePressureSource: question
 text heuristic as a fallback, set both `timePressureSource: heuristic` and `sensesMode: feed`; `timePressureSource: off`
 disables both sources. With `sensesMode` set, the plugin also measures readings of its own (next section).
 
-`classifierShadow` is accepted only for migration: it does nothing and warns once at plugin load. Remove it from your
-configuration. It is unrelated to the destructive-action gate and `sensesMode: shadow`, which still work.
+`classifierShadow`, `jevModel` and `jevKeyFile` are accepted only for migration: each does nothing and warns once at
+plugin load, and the key file is never read. Remove them from your configuration. `classifierShadow` is unrelated to
+the destructive-action gate and `sensesMode: shadow`, which still work.
 
 ## Senses: tempo, tool failures and time pressure (`sensesMode`)
 
