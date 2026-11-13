@@ -311,6 +311,18 @@ export async function runLiveEvent(opts: {
     const detail = doc?.error !== undefined ? JSON.stringify(doc.error).slice(0, 200) : res.stderr.slice(0, 200);
     return { ok: false, reason: `probbit live exit ${res.code ?? res.signal}: ${detail}`.trim(), ms };
   }
+  // A seal can land between the check above and the engine taking its writer lock. The engine appends to a segment
+  // only if it existed when the lock was taken, and never removes one, so a segment present now covers every case in
+  // which the base file's last line is not this turn's event. (If the seal came after this event, a right stance is
+  // dropped; the engine's record is right either way.)
+  if (existsSync(segment)) {
+    return {
+      ok: false,
+      sealed: true,
+      reason: `the strand was sealed into segments while this turn was running (${basename(segment)} exists; the event is in the engine's record); this plugin version does not follow segments, so the lane is paused`,
+      ms,
+    };
+  }
   const n = lastStrandEventNumber(paths.strand);
   if (n === undefined) return { ok: false, reason: "strand unreadable after the event", ms };
   return { ok: true, doc, n, eventLine: opts.eventLine, outLine: outLine.trim(), ms, labeled: extra.length > 0 };

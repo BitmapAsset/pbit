@@ -255,8 +255,11 @@ left as is with one warning per lane.
 - `strands/<lane>.senses.jsonl` (`sensesMode` shadow or feed; since 0.2.0): one line per event with the
   readings the plugin measured, the source of each and what it fed.
 
-A lane whose strand was sealed into segments with `probbit live control STRAND seal` is paused: the plugin injects no
-stance and logs why (once per lane). Following segments is not implemented in this version.
+A lane whose strand was sealed into segments with `probbit live control STRAND seal` is paused: for a new message the
+plugin does not call the engine and injects no stance, and it logs why once per lane; a turn already running when the
+seal lands gets no stance either (its event is in the engine's record). A retried message that was answered before the
+seal gets its own event's stance again, and the shadow gate keeps logging. Following segments is not implemented in
+this version.
 
 ## Safety properties
 

@@ -45,8 +45,11 @@ All notable changes to this project are documented here. The format follows
 - OpenClaw plugin on a sealed lane (after `probbit live control STRAND seal`, which continues the strand in
   `NAME.0001.strand`): the plugin kept reading the first file. Before the checkpoint fix above every later turn got no
   stance (`strand unreadable after the event`); with it alone every later turn would have shown the sealing line's
-  event number. Such a lane is now paused: the engine is not called, nothing is written, no stance is injected, and the
-  plugin logs once per lane that the strand was sealed into segments and that this version does not follow them.
+  event number. Such a lane is now paused: for a new message the plugin does not call the engine, so no event is
+  written, and injects no stance; it logs once per lane that the strand was sealed into segments and that this version
+  does not follow them. A turn that is already running when the seal lands gets no stance either (its event is in the
+  engine's record). A retried message that was answered before the seal gets the stance of its own event again. The
+  shadow gate is not affected and keeps logging.
 
 ## 0.14.1 - Unreleased
 
