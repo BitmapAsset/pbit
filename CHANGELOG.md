@@ -42,13 +42,18 @@ All notable changes to this project are documented here. The format follows
   only the current event (1), because the cut checkpoint hid every event before it from the plugin's read. The read now
   is repeated with a larger window (2, 8, then 16 MiB) until it holds more than an hour of gaps or the whole file; the
   largest window is 16 MiB.
+- OpenClaw plugin, `sensesMode` shadow or feed (since plugin 0.2.0): the `tempo` reading counted every strand line with
+  an `n` as an event, so the consolidation line a rest pass writes added one to the count. Only event lines count now
+  (the lines the engine's `strand::kind` classes as events: not control, checkpoint, rest, reflection or consolidation).
 - OpenClaw plugin on a sealed lane (after `probbit live control STRAND seal`, which continues the strand in
   `NAME.0001.strand`): the plugin kept reading the first file. Before the checkpoint fix above every later turn got no
-  stance (`strand unreadable after the event`); with it alone every later turn would have shown the sealing line's
+  stance (`strand unreadable after the event`), or reported event 0 when the sealing line was longer than the plugin's
+  64 KiB read; with it alone every later turn would have shown the sealing line's
   event number. Such a lane is now paused: for a new message the plugin does not call the engine, so no event is
   written, and injects no stance; it logs once per lane that the strand was sealed into segments and that this version
-  does not follow them. A turn that is already running when the seal lands gets no stance either (its event is in the
-  engine's record). A retried message that was answered before the seal gets the stance of its own event again. The
+  does not follow them. When the seal lands while a turn is running and the first segment exists by the time the engine
+  call returns, that turn gets no stance either (its event is in the engine's record); a seal that lands after that
+  leaves the turn its stance, with the right number. A retried message that was answered before the seal gets the stance of its own event again. The
   shadow gate is not affected and keeps logging.
 
 ## 0.14.1 - Unreleased

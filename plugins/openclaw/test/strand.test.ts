@@ -58,6 +58,18 @@ test("tempo: no event-count cutoff; 3,000 events inside the hour all count", () 
   assert.equal(tempoNow(strandFile(text), 0), 3001);
 });
 
+test("tempo: only event lines count; a consolidation line (it has an n) and the other line kinds do not", () => {
+  const d = (c: string) => `sha256:${c.repeat(64)}`;
+  const ev = (n: number) => `{"inputs":{"elapsed_hours":0.05},"n":${n},"prev":"${d("a")}","stance":"${d("b")}","state":"${d("c")}"}`;
+  // the consolidation line as the engine writes it (probbit-persona/src/rest.rs: at, consolidation, n, prev, state)
+  const consolidation = `{"at":"2026-11-12T00:00:00Z","consolidation":{"moved":[]},"n":3,"prev":"${d("a")}","state":"${d("c")}"}`;
+  // the other non-event kinds, each with an n as well, so the key decides (strand::kind), not the missing n
+  const others = ["control", "rest", "reflection"].map((k) => `{"${k}":{},"n":3,"prev":"${d("a")}"}`);
+  const lines = [HEADER, ev(1), ev(2), ev(3), consolidation, ...others, checkpoint(3), ev(4), ev(5)];
+  // five events 3 minutes apart, then this one: 6
+  assert.equal(tempoNow(strandFile(`${lines.join("\n")}\n`), 0.05), 6);
+});
+
 test("strand tail: a torn last line, an empty file or no file -> undefined", () => {
   assert.equal(lastStrandEventNumber(strandFile(`${HEADER}\n${event(1)}\n{"inputs":{"elapsed_hours":0.5},"n":2,"pr`)), undefined);
   assert.equal(lastStrandEventNumber(strandFile(`${HEADER}\n${checkpoint(3, 100 * 1024).slice(0, 90 * 1024)}`)), undefined);

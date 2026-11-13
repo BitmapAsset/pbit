@@ -85,7 +85,9 @@ tempo above the range's top as the top; the senses line keeps the measured count
 recomputes it: with u_k = round(1e6 × `elapsed_hours`) of event k (whole micro-hours; the strand stamps `elapsed_hours`
 to 1e-6 h, so the sums are exact), tempo at event n = #{m ≤ n : u_(m+1) + … + u_n ≤ 1 000 000}. A message exactly 60
 minutes after the previous one still counts it; one micro-hour later does not. The plugin reads the strand's last
-512 KiB (about 1000 events) for this.
+512 KiB for this, then wider windows (2, 8, then 16 MiB) until the window holds more than an hour of gaps or the whole
+file; a history inside the hour longer than 16 MiB is undercounted. Only event lines count: control, checkpoint, rest,
+reflection and consolidation lines do not.
 
 **`tool_fail`: a tool call failed since the previous event.** The `after_tool_call` hook (registered only with
 `sensesMode` shadow or feed; observe-only, it never changes a result) counts tool calls in the lane and the ones that
@@ -256,8 +258,10 @@ left as is with one warning per lane.
   readings the plugin measured, the source of each and what it fed.
 
 A lane whose strand was sealed into segments with `probbit live control STRAND seal` is paused: for a new message the
-plugin does not call the engine and injects no stance, and it logs why once per lane; a turn already running when the
-seal lands gets no stance either (its event is in the engine's record). A retried message that was answered before the
+plugin does not call the engine and injects no stance, and it logs why once per lane. When the seal lands while a turn
+is running and the first segment exists by the time the engine call returns, that turn gets no stance either (its event
+is in the engine's record); a seal that lands after that leaves the turn its stance, with the right number. A retried
+message that was answered before the
 seal gets its own event's stance again, and the shadow gate keeps logging. Following segments is not implemented in
 this version.
 
