@@ -63,9 +63,10 @@ run, not pre-registered bars. The registered bars and their confidence intervals
 
 ## What the receipt proves, and what it does not
 
-It proves **what the engine decided and from which inputs**, for every event, with a chain that detects any edit and a
-replay anyone can run with the public binary. With the host's block log (`--blocks`, or `build_block` of the record for a
-host that uses this module's block) it shows **what was put in front of the model**. With the host's action log
+It proves **what the engine decided and from which inputs**, for every event, with a replay anyone can run with the public
+binary: an edit to a line of the strand is found (the replay names the earliest line that differs); a log rewritten from its
+first line is not, unless its head digest was kept somewhere else. With the host's block log (`--blocks`, or `build_block`
+of the record for a host that uses this module's block) it shows **what was put in front of the model**. With the host's action log
 (`--actions`) it ties **what the agent then did** to the level its stance had released.
 
 It does not prove that the model obeyed the stance, and it says nothing about the words the model wrote. It records the

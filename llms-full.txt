@@ -236,7 +236,7 @@ One line, no sudo, the archive's SHA-256 checked before anything is installed. T
 | npm (Node 18+) | `npm i -g probbit` |
 | by hand | archives for Linux x86_64 (glibc or static musl), Linux arm64 (static), macOS (Apple silicon and Intel) and Windows x86_64 on the [Releases page](https://github.com/BitmapAsset/probbit/releases), each with a `.sha256` beside it |
 
-npm may print an `allow-scripts` warning: the package's only install script downloads the prebuilt binary for your platform
+npm may print a warning about install scripts: the package's only install script downloads the prebuilt binary for your platform
 and checks its SHA-256. If npm blocks the script, the binary is fetched the first time you run `probbit` instead.
 
 The shell installer defaults to `~/.local/bin`, without replacing a system-wide installation. Set
