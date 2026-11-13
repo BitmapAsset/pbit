@@ -21,7 +21,7 @@ This document is normative for the file format, the compilation, the stance docu
 CLI, `probbit mcp` (tools `probbit_persona_init`, `probbit_persona_turn`), the Python wrapper (`probbit.persona_init`,
 `persona_turn`, `persona_replay`) and the browser module (probbit-wasm ops 4 and 5). `probbit live` (section 5.7, live.rs) keeps an
 individual running on a clock, with learning (section 2.8) and a replayable log; `probbit monitor` (section 5.8, monitor.rs)
-draws its inner state live from that log. The example personas and their goldens are in
+draws its internal state live from that log. The example personas and their goldens are in
 [examples/persona/](../examples/persona/). An independent reference implementation of this format (Python) gives the same
 documents byte for byte on every example turn (section 5.3).
 
@@ -1792,7 +1792,9 @@ a line that differs, 5 at a line with a field or line kind this engine does not 
 a divergence), 2 for a bad flag or an unreadable file. `control` 0 when the line is appended, 2 for a bad field or an invalid
 move, 4 when the lock is held or the individual is retired.
 
-### 5.8 Monitor: watch an individual's inner state
+<a id="58-monitor-watch-an-individuals-inner-state"></a>
+
+### 5.8 Monitor: watch an individual's internal state
 
 `probbit monitor STRAND` draws an individual's declared state as live terminal bars, or as a compact browser Activity Monitor.
 It replays the strand with the rules of `live verify` (the two share one replay), recomputing every stance document from the
@@ -2074,7 +2076,7 @@ previous event, the restart included). `probbit_live_event` (MCP) and Python's `
 | `probbit live PERSONA [--seed N \| --state FILE] [--strand FILE] [--events FILE [--watch]] [--clock real\|fixed]` | a resident individual: JSONL events in, one stance per event out, `elapsed_hours` stamped by the clock, the life logged to a strand (section 5.7); `--state` is rewritten after every event |
 | `probbit live PERSONA --demo week [--seed N] [--strand FILE] [--plain]` | one individual's scripted week on the fixed clock: learning to its cap, a quiet night, habits that hold (section 5.7) |
 | `probbit live verify STRAND [--from-checkpoint] [--chain] [--actions FILE]` | replay a strand from its header alone: ok, the earliest line that differs (exit 1), or the earliest line with a field or line kind this engine does not know (`unsupported`, exit 5: a newer engine's strand, not a divergence); with `--actions`, also the earliest turn whose host action differs from the level its stance released; with `--chain`, a segment and every previous segment file (exit 6: one is missing) (section 5.7) |
-| `probbit monitor STRAND [--follow] [--once] [--plain] [--fps N] [--serve] [--open] [--port N]`, `probbit monitor --demo [...]` | watch an individual's inner state: the strand replayed as live bars in the terminal, or as a page on 127.0.0.1 (section 5.8) |
+| `probbit monitor STRAND [--follow] [--once] [--plain] [--fps N] [--serve] [--open] [--port N]`, `probbit monitor --demo [...]` | watch an individual's internal state: the strand replayed as live bars in the terminal, or as a page on 127.0.0.1 (section 5.8) |
 
 A script is a JSON list of per-turn input objects (or `{"turns": [...]}`; a turn may be `{"inputs": {...}, ...}`). Exit codes
 (`live`'s are in section 5.7, `monitor`'s in section 5.8):

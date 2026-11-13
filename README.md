@@ -766,7 +766,7 @@ rail, and the header above the face says which agent, on which host, in which la
 labels in a sidecar next to each strand (`nova.labels.json`), outside the strand and its digests: `probbit live ... --strand
 nova.strand --label agent=Nova --label lane=support` writes them, the OpenClaw plugin writes them per lane, and `probbit monitor
 old.strand --label agent=Nova --open` labels a strand recorded before them without rewriting it.
-See [the monitor guide](docs/persona.md#58-monitor-watch-an-individuals-inner-state) for the data and replay boundaries.
+See [the monitor guide](docs/persona.md#58-monitor-watch-an-individuals-internal-state) for the data and replay boundaries.
 
 **The monitor as a Mac app.** On a Mac the same page opens in its own window: download `probbit-Monitor-<version>-macos.zip`
 from the [release page](https://github.com/BitmapAsset/probbit/releases), unzip it, move **probbit Monitor** to Applications,

@@ -31,6 +31,8 @@ All notable changes to this project are documented here. The format follows
   Boolean flags; keyword mode remains local. The classifier timeout defaults to 300 ms in both modes.
 - The README distinguishes enforced stance habits from model obedience, limits replay claims to measured checks,
   and links to the changelog for release notes. Install and quickstart paths stay in place.
+- `probbit monitor --help`, the man page and the docs call what the monitor draws "internal state" (was "inner state");
+  no behaviour or output format changes.
 
 ### Fixed
 

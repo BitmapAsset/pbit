@@ -3,7 +3,7 @@
 A [probbit](https://github.com/BitmapAsset/probbit) individual beside your OpenClaw agent. In the sessions you list, every
 user message becomes one engine event: the plugin reads the message into the persona's flags, runs `probbit live`, and
 puts the resulting stance block into the turn. The model writes every word; the stance says how. Every event is appended
-to a strand that `probbit live verify` replays byte for byte, and `probbit monitor` shows the individual's inner state as
+to a strand that `probbit live verify` replays byte for byte, and `probbit monitor` shows the individual's internal state as
 it changes.
 
 ![probbit monitor on a strand this plugin wrote](docs/monitor.png)
