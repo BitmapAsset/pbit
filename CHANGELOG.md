@@ -58,6 +58,9 @@ All notable changes to this project are documented here. The format follows
 - `probbit live verify` and `probbit explain` panicked (exit 101) on a strand whose header state has a non-ASCII
   `persona.digest`: the error message cut the value at a byte that was not a character boundary. The message now cuts
   by characters, and both commands report the mismatch (exit 1, with the JSON document). The defect is in 0.14.0 too.
+- `probbit explain` (new in this release) listed a Boolean sense reading under `flags` only when it was bare
+  (`"tool_fail": true`); a wrapped reading (`{"v": true, "src": ...}`, docs/persona.md section 2.11) was left out. Both
+  forms are listed now.
 
 ## 0.14.1 - Unreleased
 
