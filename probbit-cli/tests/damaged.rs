@@ -4,8 +4,9 @@
 use probbit_persona::json::{self, Json};
 use probbit_persona::persona;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::{Duration, Instant};
 
 const SENSED: &str = "examples/persona/sensed.yaml";
 
@@ -14,8 +15,25 @@ fn tmp(name: &str) -> PathBuf {
     static ID: AtomicUsize = AtomicUsize::new(0);
     PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(format!("damaged-{}-{}-{name}", std::process::id(), ID.fetch_add(1, Ordering::Relaxed)))
 }
+/// `probbit ARGS` from the repository root, killed after 20 s: a hang shows as a failed run (no exit code), not a stuck
+/// test. Output goes to files, so a large document cannot fill a pipe while the test waits.
 fn probbit(args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_probbit")).args(args).current_dir(root()).output().unwrap()
+    let (out, err) = (tmp("stdout"), tmp("stderr"));
+    let mut child = Command::new(env!("CARGO_BIN_EXE_probbit")).args(args).current_dir(root()).stdin(Stdio::null())
+        .stdout(std::fs::File::create(&out).unwrap()).stderr(std::fs::File::create(&err).unwrap()).spawn().unwrap();
+    let start = Instant::now();
+    let mut timed_out = false;
+    let status = loop {
+        if let Some(s) = child.try_wait().unwrap() { break s; }
+        if start.elapsed() > Duration::from_secs(20) { timed_out = true; let _ = child.kill(); break child.wait().unwrap(); }
+        std::thread::sleep(Duration::from_millis(1));
+    };
+    let mut stderr = std::fs::read(&err).unwrap();
+    if timed_out { stderr.extend_from_slice(b"\ntimed out after 20 s"); }
+    let o = Output { status, stdout: std::fs::read(&out).unwrap(), stderr };
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&err);
+    o
 }
 
 /// The strand's text: header, events 1 and 2, the checkpoint after event 2, event 3.
@@ -105,7 +123,7 @@ fn a_non_ascii_persona_digest_in_the_header_is_a_divergence_not_a_panic() {
 
 /// Every string value of every line set to ten `é`, to "" and to "x", one at a time, and every line cut in the middle
 /// once (at a character boundary): each variant through `live verify` and `explain --event 1` and `--event 3`. Exit 0, 1,
-/// 2 or 5 only.
+/// 2 or 5 only, each with one JSON document on stdout; a run that panics, dies of a signal or takes over 20 s fails.
 #[test]
 fn no_panic_from_verify_or_explain_on_damaged_strand_lines() {
     let text = small_strand();
@@ -136,7 +154,11 @@ fn no_panic_from_verify_or_explain_on_damaged_strand_lines() {
         let [verify, explain1, explain3] = read_all(v);
         for (cmd, o) in [("live verify", &verify), ("explain --event 1", &explain1), ("explain --event 3", &explain3)] {
             match o.status.code() {
-                Some(0 | 1 | 2 | 5) => {}
+                Some(0 | 1 | 2 | 5) => {
+                    if let Err(e) = json::parse(String::from_utf8_lossy(&o.stdout).trim()) {
+                        bad.push(format!("{name}: {cmd} exit {:?}: stdout is not one JSON document ({})", o.status.code(), e.msg));
+                    }
+                }
                 code => bad.push(format!("{name}: {cmd} exit {code:?}: {}", String::from_utf8_lossy(&o.stderr).lines().find(|l| l.contains("panicked")).unwrap_or(""))),
             }
         }
