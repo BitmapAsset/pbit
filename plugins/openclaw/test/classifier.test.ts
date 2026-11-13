@@ -210,6 +210,8 @@ test("hook, auto with a host model: decided flags and time_pressure reach probbi
   const rows = logs(dir);
   assert.equal(rows.length, 2);
   const { event, meta } = rows[1]!;
+  assert.equal(typeof event.elapsed_hours, "number");
+  assert.ok((event.elapsed_hours as number) >= 0 && (event.elapsed_hours as number) < 1, "two turns a moment apart");
   assert.deepEqual(event, { correction: true, elapsed_hours: event.elapsed_hours, failure: true, owner_upset: true, time_pressure: 0.75 });
   assert.equal(meta.method, "decision-model");
   assert.equal(meta.timePressure, 0.75);
