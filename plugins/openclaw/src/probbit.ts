@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { closeSync, existsSync, fstatSync, mkdirSync, openSync, readFileSync, readSync, rmSync, statSync, writeFileSync, appendFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 /** The part of `probbit live`'s stance document this plugin reads (persona.md §4/§5.7). */
 export type StanceDoc = {
@@ -225,7 +225,15 @@ export function runBinary(binary: string, args: string[], input: string, killAft
 
 export type LiveRun =
   | { ok: true; doc: StanceDoc; n: number; eventLine: string; outLine: string; ms: number; labeled: boolean }
-  | { ok: false; reason: string; ms: number };
+  | { ok: false; reason: string; ms: number; sealed?: true };
+
+/**
+ * The name of a strand's first segment, as the engine names it (`strand::segment_name(base, 1)`): `NAME.0001.strand` for
+ * a path ending in `.strand`, else `PATH.0001`. It exists once the strand was sealed (`probbit live control STRAND seal`).
+ */
+export function firstSegmentName(strandPath: string): string {
+  return strandPath.endsWith(".strand") ? `${strandPath.slice(0, -".strand".length)}.0001.strand` : `${strandPath}.0001`;
+}
 
 /**
  * One event through `probbit live PERSONA --state STATE --strand STRAND --clock fixed` (persona.md §5.7).
@@ -246,6 +254,17 @@ export async function runLiveEvent(opts: {
 }): Promise<LiveRun> {
   const t0 = Date.now();
   const { paths } = opts;
+  // A sealed strand goes on in its newest segment; this version reads only the base file, so the lane is paused
+  // before anything runs or is written (docs/persona.md section 5.7, "Segments").
+  const segment = firstSegmentName(paths.strand);
+  if (existsSync(segment)) {
+    return {
+      ok: false,
+      sealed: true,
+      reason: `the strand was sealed into segments (${basename(segment)} exists); this plugin version does not follow segments, so the lane is paused`,
+      ms: Date.now() - t0,
+    };
+  }
   // Asked beside `persona init` too (cached per binary, so usually already settled at load).
   const check = opts.binaryCheck ? opts.binaryCheck().catch(() => undefined) : Promise.resolve(undefined);
   const hasState = existsSync(paths.state);

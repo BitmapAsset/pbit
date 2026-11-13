@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { registerStance } from "../src/index.js";
-import { lastStrandEventNumber } from "../src/probbit.js";
+import { firstSegmentName, lastStrandEventNumber } from "../src/probbit.js";
 import { tempoNow } from "../src/senses.js";
 import { cliEvent, createHost, GROUP_KEY, groupCtx, PERSONA_SRC, PROBBIT, tempStateDir } from "./host.js";
 
@@ -90,4 +90,62 @@ test("hook: the event that writes a checkpoint (the 1,000th) still gets its stan
   assert.equal(host.logs.some((l) => l.message.includes("strand unreadable")), false);
   const ns = readFileSync(join(dir, "log", `${LANE}.jsonl`), "utf8").trim().split("\n").map((l) => (JSON.parse(l.split("\t")[3]!) as { n: number }).n);
   assert.deepEqual(ns, [1000, 1001]);
+});
+
+test("segments: the first segment's name, as the engine's strand::segment_name(base, 1)", () => {
+  assert.equal(firstSegmentName("s/lane.strand"), "s/lane.0001.strand");
+  assert.equal(firstSegmentName("s/lane"), "s/lane.0001");
+  assert.equal(firstSegmentName("s/lane.log"), "s/lane.log.0001");
+});
+
+/** Every file under `dir` (relative path -> bytes). */
+function snapshot(dir: string, at = ""): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const name of readdirSync(join(dir, at))) {
+    const rel = at ? `${at}/${name}` : name;
+    if (statSync(join(dir, rel)).isDirectory()) for (const [k, v] of snapshot(dir, rel)) out.set(k, v);
+    else out.set(rel, readFileSync(join(dir, rel), "latin1"));
+  }
+  return out;
+}
+
+function changed(a: Map<string, string>, b: Map<string, string>): string[] {
+  return [...new Set([...a.keys(), ...b.keys()])].filter((k) => a.get(k) !== b.get(k)).sort();
+}
+
+test("hook: a sealed lane is paused: no engine call, no stance, nothing written, one warning", async () => {
+  const dir = tempStateDir();
+  for (const d of ["state", "strands", "last", "log"]) mkdirSync(join(dir, d), { recursive: true });
+  const state = join(dir, "state", `${LANE}.json`);
+  const strand = join(dir, "strands", `${LANE}.strand`);
+  const events = join(dir, "events.jsonl");
+  writeFileSync(events, '{"elapsed_hours":0.05}\n'.repeat(2));
+  execFileSync(PROBBIT, ["persona", "init", PERSONA_SRC, "--seed", "42", "--out", state], { stdio: "ignore" });
+  execFileSync(PROBBIT, ["live", PERSONA_SRC, "--state", state, "--strand", strand, "--clock", "fixed", "--events", events], { stdio: "ignore" });
+  const host = createHost({ lanes: { [GROUP_KEY]: LANE }, stateDir: dir, binary: PROBBIT, sensesMode: "shadow" });
+  registerStance(host.api);
+  const block = async (run: string) =>
+    ((await host.promptBuild(cliEvent("thanks"), groupCtx(run))).result as { appendContext?: string } | undefined)?.appendContext;
+
+  // A normal turn (event 3) writes these files; the paused turns below must write none of them.
+  const before = snapshot(dir);
+  assert.match((await block("s-0")) ?? "", /^## Assistant stance \(probbit, event 3\)/, JSON.stringify(host.logs));
+  const normal = changed(before, snapshot(dir));
+  for (const f of [`strands/${LANE}.strand`, `state/${LANE}.json`, `last/${LANE}.ts`, `log/${LANE}.jsonl`, `strands/${LANE}.senses.jsonl`]) {
+    assert.ok(normal.includes(f), `a normal turn writes ${f}: ${normal.join(", ")}`);
+  }
+
+  execFileSync(PROBBIT, ["live", "control", strand, "seal"], { stdio: "ignore" });
+  const segment = firstSegmentName(strand);
+  const sealed = snapshot(dir);
+  assert.ok(sealed.has(`strands/${LANE}.0001.strand`), `the engine wrote ${segment}: ${[...sealed.keys()].join(", ")}`);
+
+  assert.equal(await block("s-1"), undefined);
+  assert.equal(await block("s-2"), undefined);
+  assert.deepEqual(changed(sealed, snapshot(dir)), [], "the paused turns wrote nothing");
+  const warns = host.logs.filter((l) => l.level === "warn" && l.message.includes("no stance this turn"));
+  assert.deepEqual(warns.map((l) => l.message), [
+    `[probbit-stance] lane ${LANE}: no stance this turn (the strand was sealed into segments (${LANE}.0001.strand exists); this plugin version does not follow segments, so the lane is paused; warned once per lane)`,
+  ]);
+  execFileSync(PROBBIT, ["live", "verify", segment], { stdio: "ignore" });
 });

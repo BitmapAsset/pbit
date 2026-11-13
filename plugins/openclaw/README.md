@@ -255,6 +255,9 @@ left as is with one warning per lane.
 - `strands/<lane>.senses.jsonl` (`sensesMode` shadow or feed; since 0.2.0): one line per event with the
   readings the plugin measured, the source of each and what it fed.
 
+A lane whose strand was sealed into segments with `probbit live control STRAND seal` is paused: the plugin injects no
+stance and logs why (once per lane). Following segments is not implemented in this version.
+
 ## Safety properties
 
 - Only the listed sessions are touched. Heartbeats, cron runs and inter-session messages never produce events.

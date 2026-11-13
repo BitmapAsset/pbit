@@ -42,6 +42,11 @@ All notable changes to this project are documented here. The format follows
   only the current event (1), because the cut checkpoint hid every event before it from the plugin's read. The read now
   is repeated with a larger window (2, 8, then 16 MiB) until it holds more than an hour of gaps or the whole file; the
   largest window is 16 MiB.
+- OpenClaw plugin on a sealed lane (after `probbit live control STRAND seal`, which continues the strand in
+  `NAME.0001.strand`): the plugin kept reading the first file. Before the checkpoint fix above every later turn got no
+  stance (`strand unreadable after the event`); with it alone every later turn would have shown the sealing line's
+  event number. Such a lane is now paused: the engine is not called, nothing is written, no stance is injected, and the
+  plugin logs once per lane that the strand was sealed into segments and that this version does not follow them.
 
 ## 0.14.1 - Unreleased
 
