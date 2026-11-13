@@ -111,9 +111,10 @@ export function tempoFromGaps(elapsedHours: number[]): number {
 }
 
 /**
- * `inputs.elapsed_hours` of the strand's events, oldest first, from the last 512 KiB (about 1000 events). A large
- * checkpoint line can take most of that window; then the read widens (x4, up to 16 MiB) until it holds 1,000 events,
- * an hour of gaps, or the whole file, so the events before the checkpoint still count.
+ * `inputs.elapsed_hours` of the strand's events, oldest first, from the file's last 512 KiB. A large checkpoint line
+ * can take most of that window; then the tail is read again with a larger window (2, 8, then 16 MiB) until it holds
+ * more than an hour of gaps or the whole file, so the events before the checkpoint still count. The largest window is
+ * 16 MiB; with the re-reads a turn reads at most 0.5 + 2 + 8 + 16 = 26.5 MiB.
  */
 export function strandGaps(strandPath: string): number[] {
   let size = 0;
@@ -124,13 +125,13 @@ export function strandGaps(strandPath: string): number[] {
   }
   for (let window = 512 * 1024; ; window = Math.min(window * 4, STRAND_TAIL_MAX)) {
     const gaps = gapsIn(readTail(strandPath, window));
-    if (enough(gaps) || window >= size || window >= STRAND_TAIL_MAX) return gaps;
+    if (coversHour(gaps) || window >= size || window >= STRAND_TAIL_MAX) return gaps;
   }
 }
 
-/** 1,000 events, or more than an hour of gaps: enough history for the tempo rule. */
-function enough(gaps: number[]): boolean {
-  return gaps.length >= 1_000 || gaps.reduce((s, h) => s + microHours(h), 0) > WINDOW_MICRO_HOURS;
+/** More than an hour of gaps: every earlier event is outside the tempo window. */
+function coversHour(gaps: number[]): boolean {
+  return gaps.reduce((s, h) => s + microHours(h), 0) > WINDOW_MICRO_HOURS;
 }
 
 function gapsIn(tail: string): number[] {

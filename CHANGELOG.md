@@ -40,7 +40,8 @@ All notable changes to this project are documented here. The format follows
   last line is still reported as unreadable.
 - OpenClaw plugin, `sensesMode` shadow or feed: after a checkpoint line longer than 512 KiB the `tempo` reading counted
   only the current event (1), because the cut checkpoint hid every event before it from the plugin's read. The read now
-  widens (up to 16 MiB) until it holds 1,000 events, an hour of gaps or the whole file.
+  is repeated with a larger window (2, 8, then 16 MiB) until it holds more than an hour of gaps or the whole file; the
+  largest window is 16 MiB.
 
 ## 0.14.1 - Unreleased
 

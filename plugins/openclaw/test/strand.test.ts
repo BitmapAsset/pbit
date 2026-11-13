@@ -49,6 +49,15 @@ test("tempo: a checkpoint line longer than the 512 KiB read does not hide the ev
   assert.equal(tempoNow(strandFile(`${lines.join("\n")}\n`), 0.05), 11);
 });
 
+test("tempo: no event-count cutoff; 3,000 events inside the hour all count", () => {
+  const d = (c: string) => `sha256:${c.repeat(64)}`;
+  const at = (n: number) => `{"inputs":{"elapsed_hours":0},"n":${n},"prev":"${d("a")}","stance":"${d("b")}","state":"${d("c")}"}`;
+  const text = `${[HEADER, ...Array.from({ length: 3000 }, (_, i) => at(i + 1))].join("\n")}\n`;
+  // about 260 bytes a line: the first 512 KiB window holds about 2,000 events, not all 3,000, so the read must widen
+  assert.ok(text.length > 512 * 1024 && text.length < 2 * 1024 * 1024, String(text.length));
+  assert.equal(tempoNow(strandFile(text), 0), 3001);
+});
+
 test("strand tail: a torn last line, an empty file or no file -> undefined", () => {
   assert.equal(lastStrandEventNumber(strandFile(`${HEADER}\n${event(1)}\n{"inputs":{"elapsed_hours":0.5},"n":2,"pr`)), undefined);
   assert.equal(lastStrandEventNumber(strandFile(`${HEADER}\n${checkpoint(3, 100 * 1024).slice(0, 90 * 1024)}`)), undefined);
