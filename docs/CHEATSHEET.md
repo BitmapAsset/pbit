@@ -131,7 +131,7 @@ The exact tiers run before the sampler:
 - `check`: 0 every rule held and every strand replays; 1 a rule broken, an unresolved contradiction, a strand that fails or one
   this engine cannot verify (unsupported) (1 wins); 2 a bad persona, rule file or flag; 3 the only problem is an unproven rule.
 - `monitor`: 0 every line replays; 1 a line differs; 2 a bad flag, a port that cannot be had, or a file that is not a strand.
-- `explain` (unreleased): 0 the selected event recomputes; 1 the selected event, or a line before it, does not recompute (as `live verify` reports it: a changed digest, a broken chain, or inputs of an earlier event that the engine rejects); 2 a bad flag or out-of-range `--event`, an unreadable file, a line that is not JSON or an event line without its fields, or inputs of the selected event that the engine rejects; 5 unsupported field or line kind.
+- `explain` (unreleased): 0 the selected event recomputes; 1 the selected event, or a line before it, does not recompute (as `live verify` reports it: a changed digest, a broken chain, or inputs of an earlier event that the engine rejects); 2 a bad flag or out-of-range `--event`, an unreadable file, a line that is not JSON or an event line without its fields, or inputs of the selected event that the engine rejects; 5 unsupported field or line kind. In a segment file after the first, line 2 is the copy of the sealing line and is checked against the header's link, so a damaged copy is 1.
 
 ## Errors
 One channel, the same for every command (0.8.2):
