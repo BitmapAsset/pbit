@@ -276,4 +276,4 @@ The built entry (`dist/src/*.js`) imports nothing from `openclaw` at runtime (ty
 needs no `node_modules`. `openclaw plugins validate` targets tool plugins (it looks for tool-authoring metadata) and
 reports this hooks-only plugin as not valid; `npm run check:host` is the check that applies (the host's manifest loader
 accepts the manifest, the config schema accepts the example entry and rejects a bad one). Checked here: the hook contract end to end against a mocked host built from the 2026.9.7 SDK
-types, with the real binary; the author runs the same code live on his own agent.
+types, with the real binary; a build of this plugin runs live on the author's own agent since 2026-10-06.
