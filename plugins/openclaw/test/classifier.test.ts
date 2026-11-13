@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { footerLine, FOOTER_MAX, movedNames } from "../src/block.js";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import plugin, { registerStance } from "../src/index.js";
 import { CONFIG_JSON_SCHEMA, resolveConfig } from "../src/config.js";
@@ -122,6 +122,10 @@ test("hook: removed classifier warns once across turns and never calls fetch or 
   const fetch = t.mock.method(globalThis, "fetch", async () => { throw new Error("unexpected network call"); });
   let modelCalls = 0;
   const dir = tempStateDir();
+  // A key file as an upgraded install still has it: the removed adapter would have read it and called the network.
+  const fakeKey = "sk-or-FAKE-NOT-A-KEY-000";
+  const keyPath = join(dir, "old.env");
+  writeFileSync(keyPath, `OPENROUTER_API_KEY=${fakeKey}\n`);
   const host = createHost(
     {
       lanes: { [GROUP_KEY]: "team-room" },
@@ -130,7 +134,7 @@ test("hook: removed classifier warns once across turns and never calls fetch or 
       classifier: "jev",
       classifierShadow: true,
       jevModel: "old-model-id",
-      jevKeyFile: join(dir, "missing.env"),
+      jevKeyFile: keyPath,
     },
     {
       config: { agents: { defaults: { decisionModel: "example-judge" } } },
@@ -157,6 +161,8 @@ test("hook: removed classifier warns once across turns and never calls fetch or 
     '[probbit-stance] config: jevModel was removed; ignored',
     '[probbit-stance] config: jevKeyFile was removed; ignored',
   ]);
+  assert.equal(host.logs.some((l) => l.message.includes(fakeKey)), false, "the key never reaches a host log line");
+  assert.equal(readFileSync(join(dir, "log", "team-room.jsonl"), "utf8").includes(fakeKey), false, "nor the plugin log");
 });
 
 test("hook: keyword skips a configured host model; auto calls it only when configured", async () => {
@@ -178,6 +184,43 @@ test("hook: keyword skips a configured host model; auto calls it only when confi
     assert.equal(calls, expectedCalls);
     assert.deepEqual(logs(dir)[0]!.meta.flags, [expectedCalls ? "correction" : "praise"]);
   }
+});
+
+test("hook, auto with a host model: decided flags and time_pressure reach probbit; the second event reports what moved", async () => {
+  const dir = tempStateDir();
+  const host = createHost(
+    { lanes: { [GROUP_KEY]: "team-room" }, stateDir: dir, binary: PROBBIT, classifier: "auto" },
+    {
+      config: { agents: { defaults: { decisionModel: "example-judge" } } },
+      runtime: { decisions: { evaluate: async () => ({
+        status: "ok",
+        result: { answers: {
+          correction: { probabilityTrue: 0.9 },
+          owner_upset: { probabilityTrue: 0.95 },
+          praise: { probabilityTrue: 0.05 },
+          time_pressure: { score: 3 },
+        } },
+      }) } },
+    },
+  );
+  registerStance(host.api);
+  assert.ok((await host.promptBuild(cliEvent("hello"), groupCtx("two-1"))).result);
+  const { result } = await host.promptBuild(cliEvent("you broke the footer again, fix it now"), groupCtx("two-2"));
+  const block = (result as { appendContext?: string }).appendContext ?? "";
+  const rows = logs(dir);
+  assert.equal(rows.length, 2);
+  const { event, meta } = rows[1]!;
+  assert.deepEqual(event, { correction: true, elapsed_hours: event.elapsed_hours, failure: true, owner_upset: true, time_pressure: 0.75 });
+  assert.equal(meta.method, "decision-model");
+  assert.equal(meta.timePressure, 0.75);
+  assert.deepEqual(meta.inputs, ["correction", "failure", "owner_upset", "time 0.75"], "the log keeps the full input list");
+  assert.match(block, / · in: correction, failure/u);
+  assert.ok(Array.isArray(meta.moved), "the second event knows the first");
+  assert.ok((meta.moved as string[]).length > 0, "a correction after a greeting moves at least one level");
+  assert.match(block, / · moved: /u);
+  const foot = /End the visible reply with one line: "(.+)"\.$/u.exec(block)?.[1] ?? "";
+  assert.ok(foot.length > 0, block);
+  assert.ok([...foot].length <= 120, foot);
 });
 
 test("hook: auto host urgency feeds time pressure; off drops it; question wins over heuristic", async () => {
