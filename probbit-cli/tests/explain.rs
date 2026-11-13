@@ -104,6 +104,41 @@ fn normal_event_matches_the_frozen_checkpoint_and_has_prior_odds() {
 }
 
 #[test]
+fn bare_and_wrapped_boolean_sense_readings_are_both_flags() {
+    // docs/persona.md 2.11: a bare value takes the event's src, `{v, src}` carries its own; both are logged as sent.
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let run = |args: &[&str]| {
+        let o = Command::new(env!("CARGO_BIN_EXE_probbit")).args(args).current_dir(&root).output().unwrap();
+        assert_eq!(o.status.code(), Some(0), "{args:?}: {o:?}");
+    };
+    let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR"));
+    let [ev, st, strand] = ["events.jsonl", "state.json", "wrapped.strand"].map(|n| dir.join(format!("explain-{}-{n}", std::process::id())));
+    for f in [&st, &strand] {
+        let _ = std::fs::remove_file(f);
+    }
+    std::fs::write(
+        &ev,
+        concat!(
+            r#"{"elapsed_hours":0.5,"senses":{"tool_fail":{"v":true,"src":"env:runner"}},"src":"env:host"}"#, "\n",
+            r#"{"elapsed_hours":0.5,"senses":{"tool_fail":true},"src":"env:host"}"#, "\n",
+        ),
+    )
+    .unwrap();
+    let (ev_s, st_s, strand_s) = (ev.to_str().unwrap(), st.to_str().unwrap(), strand.to_str().unwrap());
+    run(&["persona", "init", "examples/persona/sensed.yaml", "--seed", "3", "--out", st_s]);
+    run(&["live", "examples/persona/sensed.yaml", "--state", st_s, "--clock", "fixed", "--events", ev_s, "--strand", strand_s]);
+    for event in ["1", "2"] {
+        let o = explain(&strand, event, true);
+        assert_eq!(o.status.code(), Some(0), "{event}: {:?}", o);
+        assert_eq!(at(&doc(&o), &["flags", "senses.tool_fail"]), &json::Json::Bool(true), "event {event}");
+    }
+    for f in [&ev, &st, &strand] {
+        let _ = std::fs::remove_file(f);
+    }
+    let _ = std::fs::remove_file(format!("{strand_s}.lock"));
+}
+
+#[test]
 fn first_event_has_initial_levels_but_no_invented_odds() {
     let o = explain(&fixture("strands/agentdojo-0.11.0.strand"), "1", true);
     assert_eq!(o.status.code(), Some(0), "{:?}", o);

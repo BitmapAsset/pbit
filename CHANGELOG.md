@@ -10,7 +10,9 @@ All notable changes to this project are documented here. The format follows
 - `probbit explain STRAND --event N [--json]`: a read-only explanation of one strand event, with logged inputs and
   flags, elapsed time, previous and recomputed stance/odds, binding habits and their constraints, chain hashes and
   `recomputes` / `differs`. Uses the same replay and turn paths as `live verify`, through the selected event only.
-  Exit 0 recomputes, 1 differs, 2 bad input, 5 unsupported; existing commands and strand digests are unchanged.
+  Exit 0: the selected event recomputes; 1: the selected event, or a line before it, does not recompute (as `live verify`
+  reports it, including a damaged copy of the sealing line in a segment file); 2: a bad flag, an unreadable file, a
+  line that is not JSON or an event line without its fields, or bad inputs in the selected event; 5: unsupported. Existing commands and strand digests are unchanged.
 - [From SOUL.md to stance habits](docs/soul-to-habits.md): the bench-assistant worked example, rules-file mappings
   and the boundaries between stance constraints, model behavior and host action enforcement.
 
@@ -55,6 +57,13 @@ All notable changes to this project are documented here. The format follows
   call returns, that turn gets no stance either (its event is in the engine's record); a seal that lands after that
   leaves the turn its stance, with the right number. A retried message that was answered before the seal gets the stance of its own event again. The
   shadow gate is not affected and keeps logging.
+- `probbit live verify` and `probbit explain` panicked (exit 101) on a strand whose header state has a non-ASCII
+  `persona.digest`: the error message cut the value at a byte that was not a character boundary. The message now cuts
+  by characters, and both commands report the mismatch with exit 1 (`live verify` and `explain --json` print it as a
+  JSON document). The defect is in 0.14.0 too.
+- `probbit explain` (new in this release) listed a Boolean sense reading under `flags` only when it was bare
+  (`"tool_fail": true`); a wrapped reading (`{"v": true, "src": ...}`, docs/persona.md section 2.11) was left out. Both
+  forms are listed now.
 
 ## 0.14.1 - Unreleased
 

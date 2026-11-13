@@ -106,7 +106,7 @@ fn flags(inputs: &Json) -> Json {
         }
         if key == "senses" {
             for (id, reading) in value.as_obj().unwrap_or(&[]) {
-                let raw = reading.get("value").unwrap_or(reading);
+                let raw = reading.get("v").unwrap_or(reading);
                 if matches!(raw, Json::Bool(_)) {
                     flags.push((format!("senses.{id}"), raw.clone()));
                 }
