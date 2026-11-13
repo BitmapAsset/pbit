@@ -14,7 +14,7 @@
     "properties": {
       "lanes": {
         "type": "object",
-        "description": "Session key (exact) or prefix ending in * → lane name. Only listed sessions get the hooks.",
+        "description": "Session key (exact) or prefix ending in * \u2192 lane name. Only listed sessions get the hooks.",
         "additionalProperties": {
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
@@ -77,26 +77,35 @@
       },
       "classifier": {
         "type": "string",
-        "enum": [
-          "auto",
-          "jev",
-          "keyword"
+        "oneOf": [
+          {
+            "enum": [
+              "auto",
+              "keyword"
+            ]
+          },
+          {
+            "const": "jev",
+            "deprecated": true,
+            "description": "Removed; loads with a warning and uses keywords only."
+          }
         ],
-        "description": "auto: host decision role when an agent decisionModel is configured, else keywords. jev: the Jev adapter (OpenRouter). keyword: keywords only."
+        "description": "auto: host decision role when an agent decisionModel is configured, else keywords. keyword: keywords only."
       },
       "classifierShadow": {
         "type": "boolean",
-        "description": "classifier jev only (default true): log Jev's answers, feed the engine the keyword flags."
+        "deprecated": true,
+        "description": "Removed; accepted as a no-op with a warning for old configurations."
       },
       "jevModel": {
         "type": "string",
-        "minLength": 1,
-        "description": "Pinned Jev model id (default typesafe/jev-1.13)."
+        "deprecated": true,
+        "description": "Removed; accepted as a no-op with a warning for old configurations."
       },
       "jevKeyFile": {
         "type": "string",
-        "minLength": 1,
-        "description": "Env-style file with OPENROUTER_API_KEY (default ~/.openclaw/probbit-stance/openrouter.env); read once at start."
+        "deprecated": true,
+        "description": "Removed; accepted as a no-op with a warning for old configurations. The file is never read."
       },
       "senderIds": {
         "type": "array",
@@ -121,7 +130,7 @@
           "heuristic",
           "off"
         ],
-        "description": "Default question: time_pressure only from the urgency question (live jev). heuristic: that answer, else the documented text heuristic (fed only with sensesMode feed). off: never."
+        "description": "Default question: time_pressure only from the urgency question (host decision model in auto mode). heuristic: that answer, else the documented text heuristic (fed only with sensesMode feed). off: never."
       },
       "agentName": {
         "type": "string",

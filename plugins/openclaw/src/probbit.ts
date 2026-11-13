@@ -301,8 +301,6 @@ export type LogMeta = {
   timePressureSrc?: "heuristic";
   /** Sense readings fed this event (sensesMode feed, declared senses only). */
   senses?: Record<string, number | boolean>;
-  /** The named classifier's run (Jev): answers, latency, cost; in shadow mode none of it was fed. */
-  classifier?: Record<string, unknown>;
   /** Footer facts, kept so a restart-time dedupe renders the same footer. */
   inputs?: string[];
   moved?: string[];

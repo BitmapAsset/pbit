@@ -1,5 +1,5 @@
 {
-  "model": "jev-latest",
+  "model": "example-judge",
   "state": {"subject": "Checkout down, charged twice", "message": "Your checkout has failed for an hour and I was charged twice. Refund me now or I cancel. Card ending 4242."},
   "questions": {
     "urgent": {"type": "noul", "instructions": "Is this request urgent?"},
@@ -17,7 +17,7 @@
   },
   "probbit": {
     "judge": {
-      "model": "jev-latest",
+      "model": "example-judge",
       "usage": {"input_tokens": 412, "output_tokens": 24},
       "answers": {
         "urgent": {"type": "noul", "noul": 0.41},

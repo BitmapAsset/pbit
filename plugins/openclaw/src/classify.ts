@@ -1,6 +1,6 @@
-/** Persona flags this plugin can set (the persona's `inputs`). launch, claim_done and time_pressure are left to the operator. */
+/** Persona flags this plugin can set (the persona's `inputs`). launch and claim_done are left to the operator. */
 export type Flag = "praise" | "correction" | "failure" | "owner_upset" | "security" | "win" | "wants_energy";
-export type Method = "marker" | "decision-model" | "jev" | "keyword" | "none";
+export type Method = "marker" | "decision-model" | "keyword" | "none";
 
 export type Classification = {
   flags: Flag[];
@@ -9,25 +9,8 @@ export type Classification = {
   probabilities?: Partial<Record<Flag, number>>;
   /** Why the decision-model path was skipped or failed, when it was tried. */
   decisionNote?: string;
-  /** time_pressure in [0, 1] fed to the engine (live Jev only; shadow logs it under `classifier`). */
+  /** time_pressure in [0, 1] fed to the engine from the host decision model. */
   timePressure?: number;
-  /** What the named classifier (Jev) answered, fed or not. Absent when no named classifier was tried. */
-  classifier?: ClassifierReport;
-};
-
-/** One named-classifier run as the lane log keeps it. `mode: "shadow"` = logged only; the engine got the keyword flags. */
-export type ClassifierReport = {
-  name: "jev";
-  mode: "shadow" | "live";
-  ok: boolean;
-  /** Flags the classifier would feed (its Boolean answers at p >= threshold, plus keyword `failure`). */
-  flags?: Flag[];
-  probabilities?: Partial<Record<Flag, number>>;
-  timePressure?: number;
-  ms?: number;
-  cost?: number;
-  model?: string;
-  note?: string;
 };
 
 const FLAG_ORDER: Flag[] = ["praise", "correction", "failure", "owner_upset", "security", "win", "wants_energy"];
@@ -142,8 +125,6 @@ export type DecisionOutcome = {
   status?: string;
   reason?: string;
   result?: { answers?: Record<string, DecisionAnswer> };
-  /** Cost and latency, when the evaluator reports them (the Jev adapter does). */
-  meta?: { ms?: number; cost?: number; model?: string };
 };
 export type DecisionEvaluate = (
   request: { state: unknown; questions: Record<string, unknown> },
@@ -220,15 +201,14 @@ export type DecisionAnswerSet = {
   flags: Flag[];
   probabilities: Partial<Record<Flag, number>>;
   timePressure?: number;
-  meta?: DecisionOutcome["meta"];
 };
 
-/** Asks the configured decision model the six Boolean questions. Undefined = not usable this turn (caller falls back). */
+/** Asks the configured decision model six Boolean questions and optionally urgency. A note means the caller falls back. */
 export async function decisionFlags(
   text: string,
   evaluate: DecisionEvaluate,
   opts: { agentId?: string; timeoutMs: number; threshold: number; askTimePressure?: boolean },
-): Promise<DecisionAnswerSet | { note: string; meta?: DecisionOutcome["meta"] }> {
+): Promise<DecisionAnswerSet | { note: string }> {
   const questions: Record<string, unknown> = {};
   for (const flag of FLAG_ORDER) {
     const q = QUESTIONS[flag];
@@ -250,9 +230,8 @@ export async function decisionFlags(
       },
     ).then(
       (outcome) => {
-        const meta = outcome?.meta;
         if (outcome?.status !== "ok") {
-          return { note: `unavailable:${outcome?.reason ?? outcome?.status ?? "unknown"}`, ...(meta ? { meta } : {}) };
+          return { note: `unavailable:${outcome?.reason ?? outcome?.status ?? "unknown"}` };
         }
         const answers = outcome.result?.answers ?? {};
         const set = new Set<Flag>();
@@ -268,7 +247,6 @@ export async function decisionFlags(
           flags: ordered(set),
           probabilities,
           ...(timePressure !== undefined ? { timePressure } : {}),
-          ...(meta ? { meta } : {}),
         };
       },
       (err: unknown) => ({ note: `error:${String(err).slice(0, 120)}` }),
@@ -284,20 +262,7 @@ export type ClassifyDeps = {
   agentId?: string;
   timeoutMs: number;
   threshold: number;
-  /** Set when `evaluate` is a named classifier (the Jev adapter) rather than the host's decision role. */
-  named?: "jev";
-  /** Named classifier only: run it and log it, but feed the engine the keyword flags (today's behaviour). */
-  shadow?: boolean;
 };
-
-/** What the engine gets without any classifier call: markers, else keywords. Shadow mode feeds exactly this. */
-export function baselineClassification(rawText: string): Classification {
-  const text = sanitize(rawText);
-  if (!text.trim()) return { flags: [], method: "none" };
-  const markers = markerFlags(text);
-  if (markers.length > 0) return { flags: markers, method: "marker" };
-  return { flags: keywordFlags(text.replace(MARKER_RE, " ")), method: "keyword" };
-}
 
 /**
  * Order: (a) operator markers win outright; (b) the decision model when one is configured and answers;
@@ -310,56 +275,22 @@ export async function classify(rawText: string, deps: ClassifyDeps): Promise<Cla
   if (markers.length > 0) return { flags: markers, method: "marker" };
   const plain = text.replace(MARKER_RE, " ");
   let decisionNote: string | undefined;
-  if (deps.evaluate && deps.named) {
-    const keywords = keywordFlags(plain);
+  if (deps.evaluate) {
     const answer = await decisionFlags(plain, deps.evaluate, {
       ...(deps.agentId ? { agentId: deps.agentId } : {}),
       timeoutMs: deps.timeoutMs,
       threshold: deps.threshold,
       askTimePressure: true,
     });
-    const mode = deps.shadow ? "shadow" : "live";
-    const meta = answer.meta;
-    const base = {
-      name: deps.named,
-      mode,
-      ...(meta?.ms !== undefined ? { ms: meta.ms } : {}),
-      ...(meta?.cost !== undefined ? { cost: meta.cost } : {}),
-      ...(meta?.model ? { model: meta.model } : {}),
-    } as const;
-    if (!("flags" in answer)) {
-      const report: ClassifierReport = { ...base, ok: false, note: answer.note };
-      return { flags: keywords, method: "keyword", decisionNote: answer.note, classifier: report };
-    }
-    const set = new Set(answer.flags);
-    if (keywords.includes("failure")) set.add("failure");
-    const flags = ordered(set);
-    const report: ClassifierReport = {
-      ...base,
-      ok: true,
-      flags,
-      probabilities: answer.probabilities,
-      ...(answer.timePressure !== undefined ? { timePressure: answer.timePressure } : {}),
-    };
-    if (deps.shadow) return { flags: keywords, method: "keyword", classifier: report };
-    return {
-      flags,
-      method: deps.named,
-      probabilities: answer.probabilities,
-      ...(answer.timePressure !== undefined ? { timePressure: answer.timePressure } : {}),
-      classifier: report,
-    };
-  }
-  if (deps.evaluate) {
-    const answer = await decisionFlags(plain, deps.evaluate, {
-      ...(deps.agentId ? { agentId: deps.agentId } : {}),
-      timeoutMs: deps.timeoutMs,
-      threshold: deps.threshold,
-    });
     if ("flags" in answer) {
       const set = new Set(answer.flags);
       if (keywordFlags(plain).includes("failure")) set.add("failure");
-      return { flags: ordered(set), method: "decision-model", probabilities: answer.probabilities };
+      return {
+        flags: ordered(set),
+        method: "decision-model",
+        probabilities: answer.probabilities,
+        ...(answer.timePressure !== undefined ? { timePressure: answer.timePressure } : {}),
+      };
     }
     decisionNote = answer.note;
   }

@@ -586,7 +586,7 @@ pub fn dispatch(t: usize, a: usize, cap: usize, group_size: usize, lam: f64, see
     Dispatch { p: Problem { t, a, h, allowed, cap: vec![cap; a], group, lam, clamp: vec![None; t], block_moves: false, pair_swaps: false, collective: false, cluster: false, cycles: false }, tickets, agents }
 }
 
-/// Per-question ("Jev-style") independent softmax marginals, ignoring rules.
+/// Per-question independent softmax marginals, ignoring rules.
 pub fn independent(p: &Problem) -> Vec<f64> {
     let mut m = vec![0.0; p.t * p.a];
     for i in 0..p.t { let mx = (0..p.a).map(|k| p.h[i * p.a + k]).fold(f64::NEG_INFINITY, f64::max);

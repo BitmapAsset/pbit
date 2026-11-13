@@ -99,7 +99,7 @@ test("decision model: p >= 0.6 accepted, 0.59 rejected, failure still from keywo
   assert.deepEqual(c.probabilities, { praise: 0.59, correction: 0.6, owner_upset: 0.91, security: 0.1, win: 0.2, wants_energy: 0.1 });
   assert.equal(calls.length, 1);
   const req = (calls[0] as { request: { questions: Record<string, { type: string }> }; options: { purpose: string; timeoutMs: number; rubricVersion: string } });
-  assert.deepEqual(Object.keys(req.request.questions).sort(), ["correction", "owner_upset", "praise", "security", "wants_energy", "win"]);
+  assert.deepEqual(Object.keys(req.request.questions).sort(), ["correction", "owner_upset", "praise", "security", "time_pressure", "wants_energy", "win"]);
   assert.equal(req.options.timeoutMs, 300);
   assert.equal(req.options.rubricVersion, "2");
 });

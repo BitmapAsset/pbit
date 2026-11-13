@@ -158,7 +158,8 @@ probbit evaluate --summary --pretty < examples/evaluate/support-12.json   # exac
 probbit evaluate --program < examples/evaluate/support-12.json | probbit run # the compiled probbit-ir program: the same answer
 ```
 
-Python (stdlib only; the judge is a callable or a System One URL, called with `urllib`; the key comes from the environment
+Any judge that answers the documented request and answer JSON works, local or remote, chosen by you.
+Python (stdlib only; the judge is a callable or a URL, called with `urllib`; the key comes from the environment
 variable you name):
 
 ```python
@@ -170,10 +171,9 @@ answer = probbit.evaluate(request, judge=lambda ask: {"urgent": 0.41, "team": {"
 moved = [q for q, a in answer["answers"].items() if a["probbit"]["changed"]]
 ```
 
-A URL without a path gets TypeSafe's `/v1/systemone`; a URL with a path is used as is (Workers AI:
-`https://api.cloudflare.com/client/v4/accounts/<account id>/ai/run/@cf/cloudflare/clef`, whose REST envelope is unwrapped).
-That path is documented from the vendors' published schemas and tested against a local mock (`python/mock_judge.py`); it was not
-exercised against a vendor. Against the mock: the judge received the request untouched (no `probbit` block), the round trip took
+A URL without a path gets `/v1/systemone`; a URL with a path is used as is. When there are no top-level `answers`, a
+`result` object is unwrapped unless `success` is false (a judge error). These behaviors are tested against a local mock
+(`python/mock_judge.py`); they were not exercised against a remote service. Against the mock: the judge received the request untouched (no `probbit` block), the round trip took
 7.0 ms (Python 3.9.6). Judge failures raise `probbit.ProbbitJudgeError`.
 
 MCP: tool `probbit_evaluate` takes the same request with optional `flags` (`{"summary": true}`, `{"program": true}`); over pipes

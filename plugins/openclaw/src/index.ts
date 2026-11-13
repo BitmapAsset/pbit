@@ -5,7 +5,6 @@ import { dirname, join } from "node:path";
 import type { OpenClawPluginApi, OpenClawPluginDefinition } from "openclaw/plugin-sdk/plugin-entry";
 import { buildBlock, footerInputs, movedNames } from "./block.js";
 import {
-  baselineClassification,
   extractCurrentMessage,
   classify,
   MARKER_RE,
@@ -13,7 +12,6 @@ import {
   type Classification,
   type DecisionEvaluate,
 } from "./classify.js";
-import { createJevEvaluate, loadJevKey, type FetchLike } from "./jev.js";
 import { CONFIG_JSON_SCHEMA, resolveConfig, resolveLane, type StanceConfig } from "./config.js";
 import { carefulFromDoc, carefulFromState, detectDestructive, digest, redactPreview } from "./gate.js";
 import { labelArgs, laneLabels, liveTakesLabels, syncSidecar } from "./labels.js";
@@ -54,8 +52,6 @@ export type StanceDeps = {
   /** Wall clock in ms (tests pin it). */
   now?: () => number;
   home?: string;
-  /** Replaces the global fetch for the Jev adapter (tests). */
-  fetch?: FetchLike;
 };
 
 const SEEN_LIMIT = 256;
@@ -148,20 +144,8 @@ export function registerStance(api: OpenClawPluginApi, deps: StanceDeps = {}): S
     if (!check.ok) warn(check.reason);
   });
 
-  // The Jev key is read once here and only ever placed in the request header; it is never logged.
-  let jevEvaluate: DecisionEvaluate | undefined;
-  if (cfg.classifier === "jev") {
-    const key = loadJevKey(cfg.jevKeyFile);
-    if (key) jevEvaluate = createJevEvaluate({ apiKey: key, model: cfg.jevModel, ...(deps.fetch ? { fetch: deps.fetch } : {}) });
-    else warn(`classifier jev: no OPENROUTER_API_KEY in ${cfg.jevKeyFile}; the adapter is off and keywords classify`);
-  }
-  /** The classifier for this turn and whether it is the named (Jev) one. */
-  const classifierFor = (agentId: string | undefined): { evaluate?: DecisionEvaluate; named?: "jev" } => {
-    if (cfg.classifier === "keyword") return {};
-    if (cfg.classifier === "jev") return jevEvaluate ? { evaluate: jevEvaluate, named: "jev" } : {};
-    const evaluate = decisionEvaluateFor(api, agentId);
-    return evaluate ? { evaluate } : {};
-  };
+  const classifierFor = (agentId: string | undefined): DecisionEvaluate | undefined =>
+    cfg.classifier === "auto" ? decisionEvaluateFor(api, agentId) : undefined;
 
   const seen = new Map<string, Entry>();
   const inflight = new Map<string, Flight>();
@@ -257,22 +241,13 @@ export function registerStance(api: OpenClawPluginApi, deps: StanceDeps = {}): S
     ensureLaneDirs(cfg.stateDir);
     const logged = findLoggedEvent(paths.log, key);
     if (logged) return logged;
-    const { evaluate, named } = classifierFor(agentId);
-    const shadow = named !== undefined && cfg.classifierShadow;
-    const clsPromise = classify(text, {
+    const evaluate = classifierFor(agentId);
+    const fed: Classification = await classify(text, {
       ...(evaluate ? { evaluate } : {}),
-      ...(named ? { named, shadow } : {}),
       ...(agentId ? { agentId } : {}),
       timeoutMs: cfg.classifierTimeoutMs,
       threshold: cfg.decisionThreshold,
     });
-    // A handler is attached at once: a rejection while probbit runs must never surface as an unhandled rejection.
-    const clsSettled = clsPromise.then(
-      (c) => c,
-      () => undefined,
-    );
-    // Shadow: the engine gets markers/keywords exactly as without a classifier, so probbit runs while Jev answers.
-    const fed: Classification = shadow ? baselineClassification(text) : await clsPromise;
     const nowMs = now();
     const nowSec = Math.floor(nowMs / 1000);
     const hours = elapsedHours(nowSec, readLastEpoch(paths.last));
@@ -362,7 +337,6 @@ export function registerStance(api: OpenClawPluginApi, deps: StanceDeps = {}): S
         return check.ok ? undefined : check.reason;
       },
     });
-    const cls: Classification = shadow ? ((await clsSettled) ?? fed) : fed;
     if (!run.ok) {
       if (tally && (tally.calls > 0 || tally.errors > 0)) {
         // The event did not happen: its tool calls count toward the next one.
@@ -400,20 +374,19 @@ export function registerStance(api: OpenClawPluginApi, deps: StanceDeps = {}): S
       n: run.n,
       key,
       keyBasis,
-      method: cls.method,
+      method: fed.method,
       flags,
       textSource,
       ms: run.ms,
       ...(state.late ? { late: true } : {}),
-      ...(cls.probabilities ? { probabilities: cls.probabilities as Record<string, number> } : {}),
-      ...(cls.decisionNote ? { decisionNote: cls.decisionNote } : {}),
+      ...(fed.probabilities ? { probabilities: fed.probabilities as Record<string, number> } : {}),
+      ...(fed.decisionNote ? { decisionNote: fed.decisionNote } : {}),
       ...(dropped.length > 0 ? { dropped } : {}),
       ...(timePressure !== undefined ? { timePressure } : {}),
       ...(timePressureSrc ? { timePressureSrc } : {}),
       ...(Object.keys(fedSenses).length > 0
         ? { senses: Object.fromEntries(Object.entries(fedSenses).map(([id, r]) => [id, r.v])) }
         : {}),
-      ...(cls.classifier ? { classifier: cls.classifier as unknown as Record<string, unknown> } : {}),
       inputs,
       ...(moved ? { moved } : {}),
     };
@@ -489,7 +462,7 @@ export function registerStance(api: OpenClawPluginApi, deps: StanceDeps = {}): S
         flight = { promise, state };
         inflight.set(key, flight);
       }
-      const budget = cfg.timeoutMs + (classifierFor(ctx.agentId).evaluate ? cfg.classifierTimeoutMs + 50 : 0);
+      const budget = cfg.timeoutMs + (classifierFor(ctx.agentId) ? cfg.classifierTimeoutMs + 50 : 0);
       const entry = await raceTimeout(flight.promise, budget);
       if (entry === TIMED_OUT) {
         flight.state.late = true;
