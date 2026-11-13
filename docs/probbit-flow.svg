@@ -20,7 +20,7 @@
 
   <!-- 2. PROCESSOR -->
   <rect x="60" y="240" width="1480" height="500" rx="14" fill="#0c1120" stroke="#5ee7ff" stroke-width="2.5" filter="url(#glow)"/>
-  <text x="84" y="272" fill="#5ee7ff" font-size="15" font-weight="700">2 · THE probbit PROCESSOR  — one Rust binary, zero dependencies, built for macOS, Linux and Windows on x86_64 and arm64</text>
+  <text x="84" y="272" fill="#5ee7ff" font-size="15" font-weight="700">2 · THE probbit PROCESSOR  — one Rust binary, built for macOS, Linux and Windows on x86_64 and arm64</text>
 
   <!-- decode -->
   <rect x="84" y="292" width="300" height="118" rx="10" fill="#111a2e" stroke="#2b3550" stroke-width="2"/>
