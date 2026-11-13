@@ -168,6 +168,7 @@ export function registerStance(api: OpenClawPluginApi, deps: StanceDeps = {}): S
     hostVersion = undefined;
   }
   const warnedLabels = new Set<string>();
+  const warnedSealed = new Set<string>();
   // The persona's senses are read once here; the cache re-reads the file only when it changes.
   if (cfg.sensesMode !== "off") readDeclaredSenses(cfg.personaPath, sensesCache);
 
@@ -342,6 +343,14 @@ export function registerStance(api: OpenClawPluginApi, deps: StanceDeps = {}): S
         // The event did not happen: its tool calls count toward the next one.
         const next = toolTally.get(lane) ?? { calls: 0, errors: 0 };
         toolTally.set(lane, { calls: next.calls + tally.calls, errors: next.errors + tally.errors });
+      }
+      if (run.sealed) {
+        // Paused until the operator acts: one warning per lane, not one per turn.
+        if (!warnedSealed.has(lane)) {
+          warnedSealed.add(lane);
+          warn(`lane ${lane}: no stance this turn (${run.reason}; warned once per lane)`);
+        }
+        return undefined;
       }
       if (!state.warned) {
         state.warned = true;

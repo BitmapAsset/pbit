@@ -1,5 +1,5 @@
 import { appendFileSync, readFileSync, statSync } from "node:fs";
-import { readTail } from "./probbit.js";
+import { readTail, STRAND_TAIL_MAX } from "./probbit.js";
 
 /** The source label the plugin puts on every reading it sends (docs/persona.md §2.11, rule S2: the kind must be in `src`). */
 export const READING_SRC = "env:probbit-stance";
@@ -110,14 +110,41 @@ export function tempoFromGaps(elapsedHours: number[]): number {
   return count;
 }
 
-/** `inputs.elapsed_hours` of the strand's events, oldest first, from the last 512 KiB (about 1000 events). */
+/**
+ * `inputs.elapsed_hours` of the strand's event lines (not control, checkpoint, rest, reflection or consolidation lines),
+ * oldest first, from the file's last 512 KiB. A large checkpoint line
+ * can take most of that window; then the tail is read again with a larger window (2, 8, then 16 MiB) until it holds
+ * more than an hour of gaps or the whole file, so the events before the checkpoint still count. The largest window is
+ * 16 MiB; with the re-reads a turn reads at most 0.5 + 2 + 8 + 16 = 26.5 MiB.
+ */
 export function strandGaps(strandPath: string): number[] {
+  let size = 0;
+  try {
+    size = statSync(strandPath).size;
+  } catch {
+    return [];
+  }
+  for (let window = 512 * 1024; ; window = Math.min(window * 4, STRAND_TAIL_MAX)) {
+    const gaps = gapsIn(readTail(strandPath, window));
+    if (coversHour(gaps) || window >= size || window >= STRAND_TAIL_MAX) return gaps;
+  }
+}
+
+/** More than an hour of gaps: every earlier event is outside the tempo window. */
+function coversHour(gaps: number[]): boolean {
+  return gaps.reduce((s, h) => s + microHours(h), 0) > WINDOW_MICRO_HOURS;
+}
+
+/** Keys that make a strand line something other than an event, as the engine's `strand::kind` decides. */
+const NOT_EVENT_KEYS = ["control", "checkpoint", "rest", "reflection", "consolidation"] as const;
+
+function gapsIn(tail: string): number[] {
   const gaps: number[] = [];
-  for (const line of readTail(strandPath, 512 * 1024).split("\n")) {
+  for (const line of tail.split("\n")) {
     if (!line.startsWith('{"')) continue;
     try {
-      const obj = JSON.parse(line) as { n?: unknown; inputs?: { elapsed_hours?: unknown } };
-      if (typeof obj.n !== "number") continue;
+      const obj = JSON.parse(line) as Record<string, unknown> & { n?: unknown; inputs?: { elapsed_hours?: unknown } };
+      if (typeof obj.n !== "number" || NOT_EVENT_KEYS.some((k) => k in obj)) continue;
       const h = obj.inputs?.elapsed_hours;
       gaps.push(typeof h === "number" ? h : 0);
     } catch {

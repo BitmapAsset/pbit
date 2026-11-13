@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { closeSync, existsSync, fstatSync, mkdirSync, openSync, readFileSync, readSync, rmSync, statSync, writeFileSync, appendFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 /** The part of `probbit live`'s stance document this plugin reads (persona.md §4/§5.7). */
 export type StanceDoc = {
@@ -117,21 +117,38 @@ export function readTail(path: string, maxBytes: number): string {
   }
 }
 
-/** Event number of the strand's last line (`n`); 0 when only the header exists. */
+/** The most `lastStrandEventNumber` reads: a last line longer than this is not read (undefined). */
+export const STRAND_TAIL_MAX = 16 * 1024 * 1024;
+
+/**
+ * Event count at the strand's last line: an event line's `n`, a checkpoint line's `checkpoint` (written after every K-th
+ * event, persona.md §5.7), 0 for the header alone; undefined for anything else (a torn write). The window starts at
+ * 64 KiB and widens until it holds the last line's start (a checkpoint carries the whole state and can be longer).
+ */
 export function lastStrandEventNumber(strandPath: string): number | undefined {
-  const tail = readTail(strandPath, 64 * 1024);
-  const lines = tail.split("\n").filter((l) => l.trim());
-  const last = lines[lines.length - 1];
-  if (!last) return undefined;
+  let size: number;
   try {
-    const obj = JSON.parse(last) as { n?: unknown; probbit_strand?: unknown };
-    if (typeof obj.n === "number") return obj.n;
-    if (obj.probbit_strand !== undefined) return 0;
+    size = statSync(strandPath).size;
   } catch {
-    // a header longer than the tail window: the first line is cut, so the strand has no events yet
-    if (lines.length === 1) return 0;
+    return undefined;
   }
-  return undefined;
+  for (let window = 64 * 1024; ; window *= 4) {
+    const lines = readTail(strandPath, window).split("\n").filter((l) => l.trim());
+    const last = lines[lines.length - 1];
+    if (!last) return undefined;
+    if (lines.length > 1 || window >= size) {
+      try {
+        const obj = JSON.parse(last) as { n?: unknown; checkpoint?: unknown; probbit_strand?: unknown };
+        if (typeof obj.n === "number") return obj.n;
+        if (typeof obj.checkpoint === "number") return obj.checkpoint;
+        if (obj.probbit_strand !== undefined) return 0;
+      } catch {
+        // a torn last line
+      }
+      return undefined;
+    }
+    if (window >= STRAND_TAIL_MAX) return undefined;
+  }
 }
 
 /** A sense reading with its own source (docs/persona.md §2.11: `{v, src}`). */
@@ -208,7 +225,15 @@ export function runBinary(binary: string, args: string[], input: string, killAft
 
 export type LiveRun =
   | { ok: true; doc: StanceDoc; n: number; eventLine: string; outLine: string; ms: number; labeled: boolean }
-  | { ok: false; reason: string; ms: number };
+  | { ok: false; reason: string; ms: number; sealed?: true };
+
+/**
+ * The name of a strand's first segment, as the engine names it (`strand::segment_name(base, 1)`): `NAME.0001.strand` for
+ * a path ending in `.strand`, else `PATH.0001`. It exists once the strand was sealed (`probbit live control STRAND seal`).
+ */
+export function firstSegmentName(strandPath: string): string {
+  return strandPath.endsWith(".strand") ? `${strandPath.slice(0, -".strand".length)}.0001.strand` : `${strandPath}.0001`;
+}
 
 /**
  * One event through `probbit live PERSONA --state STATE --strand STRAND --clock fixed` (persona.md §5.7).
@@ -229,6 +254,17 @@ export async function runLiveEvent(opts: {
 }): Promise<LiveRun> {
   const t0 = Date.now();
   const { paths } = opts;
+  // A sealed strand goes on in its newest segment; this version reads only the base file, so the lane is paused
+  // before anything runs or is written (docs/persona.md section 5.7, "Segments").
+  const segment = firstSegmentName(paths.strand);
+  if (existsSync(segment)) {
+    return {
+      ok: false,
+      sealed: true,
+      reason: `the strand was sealed into segments (${basename(segment)} exists); this plugin version does not follow segments, so the lane is paused`,
+      ms: Date.now() - t0,
+    };
+  }
   // Asked beside `persona init` too (cached per binary, so usually already settled at load).
   const check = opts.binaryCheck ? opts.binaryCheck().catch(() => undefined) : Promise.resolve(undefined);
   const hasState = existsSync(paths.state);
@@ -274,6 +310,18 @@ export async function runLiveEvent(opts: {
   if (res.code !== 0 || !doc || doc.error !== undefined || typeof doc.line !== "string") {
     const detail = doc?.error !== undefined ? JSON.stringify(doc.error).slice(0, 200) : res.stderr.slice(0, 200);
     return { ok: false, reason: `probbit live exit ${res.code ?? res.signal}: ${detail}`.trim(), ms };
+  }
+  // A seal can land between the check above and the engine taking its writer lock. The engine appends to a segment
+  // only if it existed when the lock was taken, and never removes one, so a segment present now covers every case in
+  // which the base file's last line is not this turn's event. (If the seal came after this event, a right stance is
+  // dropped; the engine's record is right either way.)
+  if (existsSync(segment)) {
+    return {
+      ok: false,
+      sealed: true,
+      reason: `the strand was sealed into segments while this turn was running (${basename(segment)} exists; the event is in the engine's record); this plugin version does not follow segments, so the lane is paused`,
+      ms,
+    };
   }
   const n = lastStrandEventNumber(paths.strand);
   if (n === undefined) return { ok: false, reason: "strand unreadable after the event", ms };
