@@ -10,7 +10,9 @@ All notable changes to this project are documented here. The format follows
 - `probbit explain STRAND --event N [--json]`: a read-only explanation of one strand event, with logged inputs and
   flags, elapsed time, previous and recomputed stance/odds, binding habits and their constraints, chain hashes and
   `recomputes` / `differs`. Uses the same replay and turn paths as `live verify`, through the selected event only.
-  Exit 0 recomputes, 1 differs, 2 bad input, 5 unsupported; existing commands and strand digests are unchanged.
+  Exit 0: the selected event recomputes; 1: the selected event, or a line before it, does not recompute (as `live verify`
+  reports it); 2: a bad flag, an unreadable file, a line that is not JSON or an event line without its fields, or bad
+  inputs in the selected event; 5: unsupported. Existing commands and strand digests are unchanged.
 - [From SOUL.md to stance habits](docs/soul-to-habits.md): the bench-assistant worked example, rules-file mappings
   and the boundaries between stance constraints, model behavior and host action enforcement.
 
