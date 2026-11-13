@@ -57,6 +57,26 @@ fn read_all(text: &str) -> [Output; 3] {
     out
 }
 
+/// The number of string values in `j`, depth first.
+fn strings(j: &Json) -> usize {
+    match j {
+        Json::Str(_) => 1,
+        Json::Arr(v) => v.iter().map(strings).sum(),
+        Json::Obj(kv) => kv.iter().map(|(_, v)| strings(v)).sum(),
+        _ => 0,
+    }
+}
+
+/// `j` with its `i`-th string value (depth first) replaced by `with`.
+fn replace(j: &Json, i: &mut usize, with: &str) -> Json {
+    match j {
+        Json::Str(s) => { let out = if *i == 0 { with.to_string() } else { s.clone() }; *i = i.wrapping_sub(1); Json::Str(out) }
+        Json::Arr(v) => Json::Arr(v.iter().map(|x| replace(x, i, with)).collect()),
+        Json::Obj(kv) => Json::Obj(kv.iter().map(|(k, v)| (k.clone(), replace(v, i, with))).collect()),
+        other => other.clone(),
+    }
+}
+
 fn header_with_persona_digest(text: &str, digest: &str) -> String {
     let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
     let mut h = json::parse(&lines[0]).unwrap();
@@ -81,4 +101,47 @@ fn a_non_ascii_persona_digest_in_the_header_is_a_divergence_not_a_panic() {
         let why = d.get("diverges").and_then(Json::as_str).unwrap_or_else(|| panic!("{name}: no diverges: {o:?}"));
         assert!(why.contains("state.persona.digest") && why.contains("éééééééééé"), "{name}: {why}");
     }
+}
+
+/// Every string value of every line set to ten `é`, to "" and to "x", one at a time, and every line cut in the middle
+/// once (at a character boundary): each variant through `live verify` and `explain --event 1` and `--event 3`. Exit 0, 1,
+/// 2 or 5 only.
+#[test]
+fn no_panic_from_verify_or_explain_on_damaged_strand_lines() {
+    let text = small_strand();
+    let lines: Vec<&str> = text.lines().collect();
+    let mut variants: Vec<(String, String)> = vec![];
+    for (li, line) in lines.iter().enumerate() {
+        let j = json::parse(line).unwrap();
+        for si in 0..strings(&j) {
+            for with in ["éééééééééé", "", "x"] {
+                let mut v: Vec<String> = lines.iter().map(|l| l.to_string()).collect();
+                v[li] = persona::canon(&replace(&j, &mut si.clone(), with));
+                variants.push((format!("line {} string {} = {:?}", li + 1, si, with), v.join("\n") + "\n"));
+            }
+        }
+        let mid = line.char_indices().map(|(i, _)| i).nth(line.chars().count() / 2).unwrap_or(0);
+        let mut v: Vec<String> = lines.iter().map(|l| l.to_string()).collect();
+        v[li] = line[..mid].to_string();
+        variants.push((format!("line {} cut at byte {mid}", li + 1), v.join("\n") + "\n"));
+    }
+    // Bound the test time: at most MAX variants, taken at an even stride, so every line keeps some.
+    const MAX: usize = 600;
+    let total = variants.len();
+    let stride = total.div_ceil(MAX).max(1);
+    let mut bad = vec![];
+    let mut run = 0;
+    for (name, v) in variants.iter().step_by(stride) {
+        run += 1;
+        let [verify, explain1, explain3] = read_all(v);
+        for (cmd, o) in [("live verify", &verify), ("explain --event 1", &explain1), ("explain --event 3", &explain3)] {
+            match o.status.code() {
+                Some(0 | 1 | 2 | 5) => {}
+                code => bad.push(format!("{name}: {cmd} exit {code:?}: {}", String::from_utf8_lossy(&o.stderr).lines().find(|l| l.contains("panicked")).unwrap_or(""))),
+            }
+        }
+    }
+    eprintln!("damaged-strand sweep: {run} of {total} variants run (stride {stride}), {} bad", bad.len());
+    assert!(run >= 100, "{run} variants");
+    assert!(bad.is_empty(), "{}", bad.join("\n"));
 }
