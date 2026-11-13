@@ -38,6 +38,9 @@ All notable changes to this project are documented here. The format follows
   were never affected. The plugin now reads a checkpoint line's event count, and when the last line is longer than its
   64 KiB read (a checkpoint carries the whole state) it widens the read up to 16 MiB instead of reporting event 0. A cut
   last line is still reported as unreadable.
+- OpenClaw plugin, `sensesMode` shadow or feed: after a checkpoint line longer than 512 KiB the `tempo` reading counted
+  only the current event (1), because the cut checkpoint hid every event before it from the plugin's read. The read now
+  widens (up to 16 MiB) until it holds 1,000 events, an hour of gaps or the whole file.
 
 ## 0.14.1 - Unreleased
 

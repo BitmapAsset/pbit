@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { registerStance } from "../src/index.js";
 import { lastStrandEventNumber } from "../src/probbit.js";
+import { tempoNow } from "../src/senses.js";
 import { cliEvent, createHost, GROUP_KEY, groupCtx, PERSONA_SRC, PROBBIT, tempStateDir } from "./host.js";
 
 const LANE = "team-room";
@@ -39,6 +40,13 @@ test("strand tail: events, then a checkpoint line longer than 64 KiB -> its chec
   assert.equal(lastStrandEventNumber(strandFile(`${lines.join("\n")}\n`)), 50);
   // and with an event after it the short last line is read from the first window as before
   assert.equal(lastStrandEventNumber(strandFile(`${[...lines, event(51)].join("\n")}\n`)), 51);
+});
+
+test("tempo: a checkpoint line longer than the 512 KiB read does not hide the events before it", () => {
+  const quick = (n: number) => `{"inputs":{"elapsed_hours":0.05},"n":${n},"prev":"sha256:${"a".repeat(64)}"}`;
+  const lines = [HEADER, ...Array.from({ length: 10 }, (_, i) => quick(i + 1)), checkpoint(10, 600 * 1024)];
+  // ten events 3 minutes apart, then the checkpoint, then this event 3 minutes later: all eleven within the hour
+  assert.equal(tempoNow(strandFile(`${lines.join("\n")}\n`), 0.05), 11);
 });
 
 test("strand tail: a torn last line, an empty file or no file -> undefined", () => {
