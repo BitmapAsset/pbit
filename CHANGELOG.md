@@ -55,6 +55,9 @@ All notable changes to this project are documented here. The format follows
   call returns, that turn gets no stance either (its event is in the engine's record); a seal that lands after that
   leaves the turn its stance, with the right number. A retried message that was answered before the seal gets the stance of its own event again. The
   shadow gate is not affected and keeps logging.
+- `probbit live verify` and `probbit explain` panicked (exit 101) on a strand whose header state has a non-ASCII
+  `persona.digest`: the error message cut the value at a byte that was not a character boundary. The message now cuts
+  by characters, and both commands report the mismatch (exit 1, with the JSON document). The defect is in 0.14.0 too.
 
 ## 0.14.1 - Unreleased
 

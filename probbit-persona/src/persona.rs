@@ -2436,7 +2436,7 @@ impl State {
         let kv = j.as_obj().ok_or_else(|| perr("state", "must be a JSON object"))?;
         need(matches!(get(kv, "probbit_persona_state"), Some(Json::Num(x)) if *x == 1.0), "state", "not a probbit persona state (format 1)")?;
         let pd = get(kv, "persona").and_then(|x| x.get("digest")).and_then(Json::as_str).ok_or_else(|| perr("state.persona.digest", "missing"))?;
-        if pd != p.digest { return Err(perr("state.persona.digest", format!("the persona file changed since this state was made ({} != {}); re-init", &pd[..pd.len().min(19)], &p.digest[..19]))); }
+        if pd != p.digest { return Err(perr("state.persona.digest", format!("the persona file changed since this state was made ({} != {}); re-init", pd.chars().take(19).collect::<String>(), &p.digest[..19]))); }
         let body = Json::Obj(kv.iter().filter(|(k, _)| k != "digest").cloned().collect());
         need(get(kv, "digest").and_then(Json::as_str) == Some(sha(&body).as_str()), "state.digest", "state was edited or corrupted")?;
         need(p.drives.is_none() || get(kv, "drives").is_some(), "state.drives", "required with a drives block")?;
