@@ -117,21 +117,38 @@ export function readTail(path: string, maxBytes: number): string {
   }
 }
 
-/** Event number of the strand's last line (`n`); 0 when only the header exists. */
+/** The most `lastStrandEventNumber` reads: a last line longer than this is not read (undefined). */
+export const STRAND_TAIL_MAX = 16 * 1024 * 1024;
+
+/**
+ * Event count at the strand's last line: an event line's `n`, a checkpoint line's `checkpoint` (written after every K-th
+ * event, persona.md §5.7), 0 for the header alone; undefined for anything else (a torn write). The window starts at
+ * 64 KiB and widens until it holds the last line's start (a checkpoint carries the whole state and can be longer).
+ */
 export function lastStrandEventNumber(strandPath: string): number | undefined {
-  const tail = readTail(strandPath, 64 * 1024);
-  const lines = tail.split("\n").filter((l) => l.trim());
-  const last = lines[lines.length - 1];
-  if (!last) return undefined;
+  let size: number;
   try {
-    const obj = JSON.parse(last) as { n?: unknown; probbit_strand?: unknown };
-    if (typeof obj.n === "number") return obj.n;
-    if (obj.probbit_strand !== undefined) return 0;
+    size = statSync(strandPath).size;
   } catch {
-    // a header longer than the tail window: the first line is cut, so the strand has no events yet
-    if (lines.length === 1) return 0;
+    return undefined;
   }
-  return undefined;
+  for (let window = 64 * 1024; ; window *= 4) {
+    const lines = readTail(strandPath, window).split("\n").filter((l) => l.trim());
+    const last = lines[lines.length - 1];
+    if (!last) return undefined;
+    if (lines.length > 1 || window >= size) {
+      try {
+        const obj = JSON.parse(last) as { n?: unknown; checkpoint?: unknown; probbit_strand?: unknown };
+        if (typeof obj.n === "number") return obj.n;
+        if (typeof obj.checkpoint === "number") return obj.checkpoint;
+        if (obj.probbit_strand !== undefined) return 0;
+      } catch {
+        // a torn last line
+      }
+      return undefined;
+    }
+    if (window >= STRAND_TAIL_MAX) return undefined;
+  }
 }
 
 /** A sense reading with its own source (docs/persona.md §2.11: `{v, src}`). */

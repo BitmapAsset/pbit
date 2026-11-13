@@ -30,6 +30,15 @@ All notable changes to this project are documented here. The format follows
 - The README distinguishes enforced stance habits from model obedience, limits replay claims to measured checks,
   and links to the changelog for release notes. Install and quickstart paths stay in place.
 
+### Fixed
+
+- OpenClaw plugin: the turn on which the engine appends a checkpoint line (every 1,000th event, the engine's default)
+  got no stance; the plugin logged `no stance this turn (strand unreadable after the event)` because it accepted only an
+  event line or the header as the strand's last line. The engine had recorded the event, so the strand and its `verify`
+  were never affected. The plugin now reads a checkpoint line's event count, and when the last line is longer than its
+  64 KiB read (a checkpoint carries the whole state) it widens the read up to 16 MiB instead of reporting event 0. A cut
+  last line is still reported as unreadable.
+
 ## 0.14.1 - Unreleased
 
 ### Fixed
