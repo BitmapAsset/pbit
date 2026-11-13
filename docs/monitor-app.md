@@ -2,7 +2,7 @@
 
 `probbit monitor STRAND --open` serves the monitor page on 127.0.0.1 and opens it in the browser. **probbit Monitor** is the
 same page in its own Mac window: an app you open from Finder, the Dock or Launchpad, with the probbit binary inside it. The
-page itself is the one described in [persona.md §5.8](persona.md#58-monitor-watch-an-individuals-inner-state); what it looks
+page itself is the one described in [persona.md §5.8](persona.md#58-monitor-watch-an-individuals-internal-state); what it looks
 like: [probbit-monitor.png](probbit-monitor.png).
 
 ## Get it
@@ -42,7 +42,7 @@ either kind opens like any app. A copy you build yourself (below) has no quarant
   (`probbit monitor --demo week`), no strand needed.
 - **Several strands, a folder**: the app passes every file you open, and a folder as `--dir FOLDER`, to its probbit. The
   bundled probbit (0.13.0) serves them all on one page, with a rail on the left to switch between strands and each strand's
-  labels ([persona.md §5.8](persona.md#58-monitor-watch-an-individuals-inner-state)). A probbit that watches one strand at a
+  labels ([persona.md §5.8](persona.md#58-monitor-watch-an-individuals-internal-state)). A probbit that watches one strand at a
   time (0.12.1 and earlier, if you build the app around one) refuses that; the app then shows the first strand you chose
   (for a folder, its most recently changed `*.strand` file) and says so under the window title.
 - **Integrity** (engine 0.14.0+, a persona with the identity self keys, [persona.md §5.9](persona.md#59-integrity-the-drift-from-the-declared-self-rfc-0014)):

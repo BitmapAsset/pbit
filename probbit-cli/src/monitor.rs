@@ -1,4 +1,4 @@
-//! `probbit monitor STRAND` (docs/persona.md §5.8): watch an individual's inner state as live horizontal bars. The monitor
+//! `probbit monitor STRAND` (docs/persona.md §5.8): watch an individual's internal state as live horizontal bars. The monitor
 //! replays the strand with `live::Replay`, the rules `probbit live verify` uses, so it recomputes every stance document from
 //! the strand alone (no other log, any strand, any machine) and says whether the replay checks. It draws the latest event: the
 //! stance (each trait's levels as segments with their exact odds, the level taken highlighted, the phrase it says), the moods

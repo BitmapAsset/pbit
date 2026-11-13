@@ -224,7 +224,7 @@ One line, no sudo, the archive's SHA-256 checked before anything is installed. T
 | npm (Node 18+) | `npm i -g probbit` |
 | by hand | archives for Linux x86_64 (glibc or static musl), Linux arm64 (static), macOS (Apple silicon and Intel) and Windows x86_64 on the [Releases page](https://github.com/BitmapAsset/probbit/releases), each with a `.sha256` beside it |
 
-npm may print an `allow-scripts` warning: the package's only install script downloads the prebuilt binary for your platform
+npm may print a warning about install scripts: the package's only install script downloads the prebuilt binary for your platform
 and checks its SHA-256. If npm blocks the script, the binary is fetched the first time you run `probbit` instead.
 
 The shell installer defaults to `~/.local/bin`, without replacing a system-wide installation. Set
@@ -766,7 +766,7 @@ rail, and the header above the face says which agent, on which host, in which la
 labels in a sidecar next to each strand (`nova.labels.json`), outside the strand and its digests: `probbit live ... --strand
 nova.strand --label agent=Nova --label lane=support` writes them, the OpenClaw plugin writes them per lane, and `probbit monitor
 old.strand --label agent=Nova --open` labels a strand recorded before them without rewriting it.
-See [the monitor guide](docs/persona.md#58-monitor-watch-an-individuals-inner-state) for the data and replay boundaries.
+See [the monitor guide](docs/persona.md#58-monitor-watch-an-individuals-internal-state) for the data and replay boundaries.
 
 **The monitor as a Mac app.** On a Mac the same page opens in its own window: download `probbit-Monitor-<version>-macos.zip`
 from the [release page](https://github.com/BitmapAsset/probbit/releases), unzip it, move **probbit Monitor** to Applications,

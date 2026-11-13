@@ -236,7 +236,7 @@ One line, no sudo, the archive's SHA-256 checked before anything is installed. T
 | npm (Node 18+) | `npm i -g probbit` |
 | by hand | archives for Linux x86_64 (glibc or static musl), Linux arm64 (static), macOS (Apple silicon and Intel) and Windows x86_64 on the [Releases page](https://github.com/BitmapAsset/probbit/releases), each with a `.sha256` beside it |
 
-npm may print an `allow-scripts` warning: the package's only install script downloads the prebuilt binary for your platform
+npm may print a warning about install scripts: the package's only install script downloads the prebuilt binary for your platform
 and checks its SHA-256. If npm blocks the script, the binary is fetched the first time you run `probbit` instead.
 
 The shell installer defaults to `~/.local/bin`, without replacing a system-wide installation. Set
@@ -778,7 +778,7 @@ rail, and the header above the face says which agent, on which host, in which la
 labels in a sidecar next to each strand (`nova.labels.json`), outside the strand and its digests: `probbit live ... --strand
 nova.strand --label agent=Nova --label lane=support` writes them, the OpenClaw plugin writes them per lane, and `probbit monitor
 old.strand --label agent=Nova --open` labels a strand recorded before them without rewriting it.
-See [the monitor guide](docs/persona.md#58-monitor-watch-an-individuals-inner-state) for the data and replay boundaries.
+See [the monitor guide](docs/persona.md#58-monitor-watch-an-individuals-internal-state) for the data and replay boundaries.
 
 **The monitor as a Mac app.** On a Mac the same page opens in its own window: download `probbit-Monitor-<version>-macos.zip`
 from the [release page](https://github.com/BitmapAsset/probbit/releases), unzip it, move **probbit Monitor** to Applications,
@@ -1053,7 +1053,7 @@ This document is normative for the file format, the compilation, the stance docu
 CLI, `probbit mcp` (tools `probbit_persona_init`, `probbit_persona_turn`), the Python wrapper (`probbit.persona_init`,
 `persona_turn`, `persona_replay`) and the browser module (probbit-wasm ops 4 and 5). `probbit live` (section 5.7, live.rs) keeps an
 individual running on a clock, with learning (section 2.8) and a replayable log; `probbit monitor` (section 5.8, monitor.rs)
-draws its inner state live from that log. The example personas and their goldens are in
+draws its internal state live from that log. The example personas and their goldens are in
 [examples/persona/](../examples/persona/). An independent reference implementation of this format (Python) gives the same
 documents byte for byte on every example turn (section 5.3).
 
@@ -2824,7 +2824,9 @@ a line that differs, 5 at a line with a field or line kind this engine does not 
 a divergence), 2 for a bad flag or an unreadable file. `control` 0 when the line is appended, 2 for a bad field or an invalid
 move, 4 when the lock is held or the individual is retired.
 
-### 5.8 Monitor: watch an individual's inner state
+<a id="58-monitor-watch-an-individuals-inner-state"></a>
+
+### 5.8 Monitor: watch an individual's internal state
 
 `probbit monitor STRAND` draws an individual's declared state as live terminal bars, or as a compact browser Activity Monitor.
 It replays the strand with the rules of `live verify` (the two share one replay), recomputing every stance document from the
@@ -3106,7 +3108,7 @@ previous event, the restart included). `probbit_live_event` (MCP) and Python's `
 | `probbit live PERSONA [--seed N \| --state FILE] [--strand FILE] [--events FILE [--watch]] [--clock real\|fixed]` | a resident individual: JSONL events in, one stance per event out, `elapsed_hours` stamped by the clock, the life logged to a strand (section 5.7); `--state` is rewritten after every event |
 | `probbit live PERSONA --demo week [--seed N] [--strand FILE] [--plain]` | one individual's scripted week on the fixed clock: learning to its cap, a quiet night, habits that hold (section 5.7) |
 | `probbit live verify STRAND [--from-checkpoint] [--chain] [--actions FILE]` | replay a strand from its header alone: ok, the earliest line that differs (exit 1), or the earliest line with a field or line kind this engine does not know (`unsupported`, exit 5: a newer engine's strand, not a divergence); with `--actions`, also the earliest turn whose host action differs from the level its stance released; with `--chain`, a segment and every previous segment file (exit 6: one is missing) (section 5.7) |
-| `probbit monitor STRAND [--follow] [--once] [--plain] [--fps N] [--serve] [--open] [--port N]`, `probbit monitor --demo [...]` | watch an individual's inner state: the strand replayed as live bars in the terminal, or as a page on 127.0.0.1 (section 5.8) |
+| `probbit monitor STRAND [--follow] [--once] [--plain] [--fps N] [--serve] [--open] [--port N]`, `probbit monitor --demo [...]` | watch an individual's internal state: the strand replayed as live bars in the terminal, or as a page on 127.0.0.1 (section 5.8) |
 
 A script is a JSON list of per-turn input objects (or `{"turns": [...]}`; a turn may be `{"inputs": {...}, ...}`). Exit codes
 (`live`'s are in section 5.7, `monitor`'s in section 5.8):
